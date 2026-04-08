@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>A-boost メンバー登録</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', 'Hiragino Sans', 'Meiryo', sans-serif;
+      background: #f3f4f6;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+
+    .container {
+      background: white;
+      border-radius: 14px;
+      padding: 2rem;
+      width: 100%;
+      max-width: 480px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+
+    .logo {
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .logo h1 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: #4f46e5;
+    }
+
+    .logo p {
+      font-size: 0.9rem;
+      color: #6b7280;
+      margin-top: 0.3rem;
+    }
+
+    .form-group {
+      margin-bottom: 1.1rem;
+    }
+
+    label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 0.4rem;
+    }
+
+    label .required {
+      color: #ef4444;
+      margin-left: 2px;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 0.65rem 0.9rem;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      color: #111827;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    input:focus, select:focus {
+      border-color: #4f46e5;
+      box-shadow: 0 0 0 3px rgba(79,70,229,0.1);
+    }
+
+    .btn {
+      width: 100%;
+      padding: 0.75rem;
+      background: #4f46e5;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 0.5rem;
+      transition: background 0.15s;
+    }
+
+    .btn:hover { background: #3730a3; }
+
+    .success {
+      display: none;
+      text-align: center;
+      padding: 2rem 1rem;
+    }
+
+    .success-icon { font-size: 3rem; margin-bottom: 1rem; }
+    .success h2 { font-size: 1.3rem; color: #111827; margin-bottom: 0.5rem; }
+    .success p { color: #6b7280; font-size: 0.9rem; }
+
+    .back-btn {
+      display: inline-block;
+      margin-top: 1.5rem;
+      padding: 0.5rem 1.25rem;
+      background: #f3f4f6;
+      color: #374151;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+
+    .note {
+      font-size: 0.75rem;
+      color: #9ca3af;
+      text-align: center;
+      margin-top: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div id="form-section">
+      <div class="logo">
+        <h1>⚡ A-boost</h1>
+        <p>メンバー登録フォーム</p>
+      </div>
+
+      <div class="form-group">
+        <label>名前<span class="required">*</span></label>
+        <input type="text" id="f-name" placeholder="山田 太郎">
+      </div>
+
+      <div class="form-group">
+        <label>学年<span class="required">*</span></label>
+        <select id="f-grade">
+          <option value="">選択してください</option>
+          <option value="B1">B1</option>
+          <option value="B2">B2</option>
+          <option value="B3">B3</option>
+          <option value="B4">B4</option>
+          <option value="M1">M1</option>
+          <option value="M2">M2</option>
+          <option value="D">D</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>学科/専攻</label>
+        <input type="text" id="f-dept" placeholder="情報工学科">
+      </div>
+
+      <div class="form-group">
+        <label>LINE名</label>
+        <input type="text" id="f-line" placeholder="LINE表示名">
+      </div>
+
+      <button class="btn" onclick="submitForm()">登録する</button>
+      <p class="note">入力内容はサークル運営のみが管理します</p>
+    </div>
+
+    <div class="success" id="success-section">
+      <div class="success-icon">✅</div>
+      <h2>登録完了！</h2>
+      <p>登録ありがとうございます。<br>内容を受け付けました。</p>
+      <button class="back-btn" onclick="resetForm()">続けて登録する</button>
+    </div>
+  </div>
+
+  <script>
+    function submitForm() {
+      const name = document.getElementById('f-name').value.trim();
+      const grade = document.getElementById('f-grade').value;
+      if (!name) { alert('名前を入力してください'); return; }
+      if (!grade) { alert('学年を選択してください'); return; }
+
+      const member = {
+        id: Date.now().toString(36) + Math.random().toString(36).slice(2, 5),
+        name,
+        grade,
+        dept: document.getElementById('f-dept').value.trim(),
+        email: document.getElementById('f-line').value.trim(),
+      };
+
+      const members = JSON.parse(localStorage.getItem('aboost_members') || '[]');
+      members.push(member);
+      localStorage.setItem('aboost_members', JSON.stringify(members));
+
+      document.getElementById('form-section').style.display = 'none';
+      document.getElementById('success-section').style.display = 'block';
+    }
+
+    function resetForm() {
+      document.getElementById('f-name').value = '';
+      document.getElementById('f-grade').value = '';
+      document.getElementById('f-dept').value = '';
+      document.getElementById('f-line').value = '';
+      document.getElementById('form-section').style.display = 'block';
+      document.getElementById('success-section').style.display = 'none';
+    }
+  </script>
+</body>
+</html>
