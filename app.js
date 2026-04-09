@@ -425,10 +425,13 @@ function renderTransactions() {
 }
 
 function saveTransaction() {
-  const date = document.getElementById('t-date').value;
+  const month = document.getElementById('t-month').value;
+  const day = document.getElementById('t-day').value;
   const amount = document.getElementById('t-amount').value;
   const desc = document.getElementById('t-desc').value.trim();
-  if (!date || !amount || !desc) { alert('日付・金額・内容は必須です'); return; }
+  if (!month || !day || !amount || !desc) { alert('日付・金額・内容は必須です'); return; }
+  const year = new Date().getFullYear();
+  const date = `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
   const id = document.getElementById('t-edit-id').value;
   const transactions = DB.get('transactions');
   const t = {
@@ -459,7 +462,9 @@ function editTransaction(id) {
   if (!t) return;
   document.getElementById('transaction-modal-title').textContent = '収支編集';
   document.getElementById('t-edit-id').value = t.id;
-  document.getElementById('t-date').value = t.date;
+  const parts = (t.date || '').split('-');
+  document.getElementById('t-month').value = parts[1] ? parseInt(parts[1]) : '';
+  document.getElementById('t-day').value = parts[2] ? parseInt(parts[2]) : '';
   document.getElementById('t-type').value = t.type;
   document.getElementById('t-category').value = t.category;
   document.getElementById('t-amount').value = t.amount;
@@ -567,7 +572,7 @@ function closeModal(id) {
   if (id === 'transaction-modal') {
     document.getElementById('transaction-modal-title').textContent = '収支追加';
     document.getElementById('t-edit-id').value = '';
-    ['t-date','t-amount','t-desc','t-person','t-note'].forEach(f => document.getElementById(f).value = '');
+    ['t-month','t-day','t-amount','t-desc','t-person','t-note'].forEach(f => document.getElementById(f).value = '');
     document.getElementById('t-type').value = 'income';
     document.getElementById('t-category').value = '部費';
   }
@@ -602,7 +607,8 @@ function formatDate(str) {
 
 // ========== INIT ==========
 document.addEventListener('DOMContentLoaded', () => {
-  const today = new Date().toISOString().slice(0, 10);
-  document.getElementById('e-date').value = today;
-  document.getElementById('t-date').value = today;
+  const today = new Date();
+  document.getElementById('e-date').value = today.toISOString().slice(0, 10);
+  document.getElementById('t-month').value = today.getMonth() + 1;
+  document.getElementById('t-day').value = today.getDate();
 });
