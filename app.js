@@ -1,9 +1,50 @@
-// ========== DATA MANAGEMENT ==========
+// ========== FIREBASE / DATA MANAGEMENT ==========
+const firebaseConfig = {
+  apiKey: "AIzaSyCJqp4e8BMkEbOO3ErWXJiz0zx9J3pxl34",
+  authDomain: "a-boost.firebaseapp.com",
+  projectId: "a-boost",
+  storageBucket: "a-boost.firebasestorage.app",
+  messagingSenderId: "431608615443",
+  appId: "1:431608615443:web:5fb112e76f2d6ef3b7e5e6",
+  measurementId: "G-7TFBPDR74Q"
+};
+
+firebase.initializeApp(firebaseConfig);
+const fsdb = firebase.firestore();
+const dataRef = fsdb.collection('app').doc('data');
+
+const STATE = { members: [], events: [], transactions: [], docs: [], notice: '' };
+
+dataRef.get().then(snap => {
+  if (!snap.exists) dataRef.set(STATE);
+});
+
+dataRef.onSnapshot(snap => {
+  if (!snap.exists) return;
+  const data = snap.data();
+  STATE.members = data.members || [];
+  STATE.events = data.events || [];
+  STATE.transactions = data.transactions || [];
+  STATE.docs = data.docs || [];
+  STATE.notice = data.notice || '';
+  updateDashboard();
+  renderMembers();
+  renderCalendar();
+  renderTransactions();
+  renderDocs();
+});
+
 const DB = {
-  get: (key) => JSON.parse(localStorage.getItem('aboost_' + key) || '[]'),
-  set: (key, data) => localStorage.setItem('aboost_' + key, JSON.stringify(data)),
-  getStr: (key) => localStorage.getItem('aboost_' + key) || '',
-  setStr: (key, val) => localStorage.setItem('aboost_' + key, val),
+  get: (key) => STATE[key] || [],
+  getStr: (key) => STATE[key] || '',
+  set: (key, data) => {
+    STATE[key] = data;
+    dataRef.set({ [key]: data }, { merge: true });
+  },
+  setStr: (key, val) => {
+    STATE[key] = val;
+    dataRef.set({ [key]: val }, { merge: true });
+  },
 };
 
 function genId() {
@@ -808,14 +849,7 @@ function formatDate(str) {
 
 // ========== INIT ==========
 document.addEventListener('DOMContentLoaded', () => {
-  // Set today's date as default
   const today = new Date().toISOString().slice(0, 10);
   document.getElementById('e-date').value = today;
   document.getElementById('t-date').value = today;
-
-  updateDashboard();
-  renderMembers();
-  renderCalendar();
-  renderTransactions();
-  renderDocs();
 });
