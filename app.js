@@ -574,7 +574,7 @@ function closeModal(id) {
     document.getElementById('t-edit-id').value = '';
     ['t-month','t-day','t-amount','t-desc','t-person','t-note'].forEach(f => document.getElementById(f).value = '');
     document.getElementById('t-type').value = 'income';
-    document.getElementById('t-category').value = '部費';
+    document.getElementById('t-category').value = '会費';
   }
 }
 
