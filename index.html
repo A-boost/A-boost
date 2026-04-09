@@ -18,7 +18,7 @@
         <button class="nav-btn" data-page="members">メンバー</button>
         <button class="nav-btn" data-page="schedule">スケジュール</button>
         <button class="nav-btn" data-page="accounting">会計</button>
-        <button class="nav-btn" data-page="documents">文書</button>
+        <button class="nav-btn" data-page="documents">意見・アイデア</button>
       </nav>
     </header>
 
@@ -43,9 +43,9 @@
             <div class="stat-label">現在残高</div>
           </div>
           <div class="stat-card">
-            <div class="stat-icon">📄</div>
-            <div class="stat-value" id="stat-docs">0</div>
-            <div class="stat-label">文書数</div>
+            <div class="stat-icon">💬</div>
+            <div class="stat-value" id="stat-opinions">0</div>
+            <div class="stat-label">意見数</div>
           </div>
         </div>
 
@@ -200,17 +200,15 @@
         </div>
       </section>
 
-      <!-- 文書管理 -->
+      <!-- 意見・アイデア -->
       <section id="page-documents" class="page">
-        <h2>文書管理</h2>
+        <h2>意見・アイデア</h2>
         <div class="toolbar">
-          <button class="btn btn-primary" onclick="openDocModal()">+ 文書作成</button>
-          <button class="btn btn-outline" onclick="showTemplates()">テンプレート</button>
-          <select id="doc-event-filter" onchange="renderDocs()">
+          <select id="opinion-event-filter" onchange="renderOpinions()">
             <option value="all">すべてのイベント</option>
           </select>
         </div>
-        <div id="docs-grid" class="docs-grid"></div>
+        <div id="opinions-list" class="list-container"></div>
       </section>
     </main>
   </div>
@@ -354,67 +352,6 @@
     </div>
   </div>
 
-  <!-- 文書作成モーダル -->
-  <div id="doc-modal" class="modal-overlay" style="display:none">
-    <div class="modal modal-wide">
-      <h3 id="doc-modal-title">文書作成</h3>
-      <input type="hidden" id="doc-edit-id">
-      <div class="form-grid">
-        <div class="form-group">
-          <label>タイトル *</label>
-          <input type="text" id="doc-title" placeholder="2024年度 総会議事録">
-        </div>
-        <div class="form-group">
-          <label>種別</label>
-          <select id="doc-type">
-            <option value="議事録">議事録</option>
-            <option value="告知文">告知文</option>
-            <option value="規約">規約・規則</option>
-            <option value="報告書">報告書</option>
-            <option value="その他">その他</option>
-          </select>
-        </div>
-        <div class="form-group full-width">
-          <label>対象イベント</label>
-          <select id="doc-event">
-            <option value="">なし</option>
-          </select>
-        </div>
-        <div class="form-group full-width">
-          <label>本文</label>
-          <textarea id="doc-content" rows="12" placeholder="文書の内容を入力..."></textarea>
-        </div>
-      </div>
-      <div class="modal-actions">
-        <button class="btn btn-primary" onclick="saveDoc()">保存</button>
-        <button class="btn btn-outline" onclick="printDoc()">印刷/PDF</button>
-        <button class="btn btn-outline" onclick="closeModal('doc-modal')">キャンセル</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- テンプレートモーダル -->
-  <div id="template-modal" class="modal-overlay" style="display:none">
-    <div class="modal">
-      <h3>テンプレート選択</h3>
-      <div class="template-list" id="template-list"></div>
-      <div class="modal-actions">
-        <button class="btn btn-outline" onclick="closeModal('template-modal')">閉じる</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- 文書表示モーダル -->
-  <div id="doc-view-modal" class="modal-overlay" style="display:none">
-    <div class="modal modal-wide">
-      <div id="doc-view-content"></div>
-      <div class="modal-actions">
-        <button class="btn btn-primary" onclick="editDocFromView()">編集</button>
-        <button class="btn btn-outline" onclick="printDocFromView()">印刷/PDF</button>
-        <button class="btn btn-outline" onclick="closeModal('doc-view-modal')">閉じる</button>
-      </div>
-    </div>
-  </div>
 
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>

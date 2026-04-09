@@ -13,7 +13,7 @@ firebase.initializeApp(firebaseConfig);
 const fsdb = firebase.firestore();
 const dataRef = fsdb.collection('app').doc('data');
 
-const STATE = { members: [], events: [], transactions: [], docs: [], notice: '' };
+const STATE = { members: [], events: [], transactions: [], opinions: [], notice: '' };
 
 dataRef.get().then(snap => {
   if (!snap.exists) dataRef.set(STATE);
@@ -25,13 +25,13 @@ dataRef.onSnapshot(snap => {
   STATE.members = data.members || [];
   STATE.events = data.events || [];
   STATE.transactions = data.transactions || [];
-  STATE.docs = data.docs || [];
+  STATE.opinions = data.opinions || [];
   STATE.notice = data.notice || '';
   updateDashboard();
   renderMembers();
   renderCalendar();
   renderTransactions();
-  renderDocs();
+  renderOpinions();
 });
 
 const DB = {
@@ -67,7 +67,7 @@ function updateDashboard() {
   const members = DB.get('members').filter(m => m.status === 'active');
   const events = DB.get('events');
   const transactions = DB.get('transactions');
-  const docs = DB.get('docs');
+  const opinions = DB.get('opinions');
 
   document.getElementById('stat-members').textContent = members.length;
 
@@ -82,7 +82,7 @@ function updateDashboard() {
     return t.type === 'income' ? sum + Number(t.amount) : sum - Number(t.amount);
   }, 0);
   document.getElementById('stat-balance').textContent = '¥' + balance.toLocaleString();
-  document.getElementById('stat-docs').textContent = docs.length;
+  document.getElementById('stat-opinions').textContent = opinions.length;
 
   // Upcoming events
   const upcoming = events
@@ -477,287 +477,49 @@ function deleteTransaction(id) {
   showToast('収支を削除しました');
 }
 
-// ========== DOCUMENTS ==========
-const TEMPLATES = [
-  {
-    title: '議事録テンプレート',
-    type: '議事録',
-    desc: '会議・ミーティング用',
-    content: `【議事録】
-
-日時：
-場所：
-出席者：
-欠席者：
-議長：
-書記：
-
-─────────────────────
-■ 議題
-
-1.
-2.
-3.
-
-─────────────────────
-■ 審議・報告内容
-
-1.
-  ・
-  ・
-  決定事項：
-
-2.
-  ・
-  決定事項：
-
-─────────────────────
-■ 次回開催予定
-
-日時：
-場所：
-議題（予定）：
-
-─────────────────────
-以上`
-  },
-  {
-    title: '告知文テンプレート',
-    type: '告知文',
-    desc: '活動告知・募集用',
-    content: `【お知らせ】
-
-タイトル：
-
-─────────────────────
-日時：
-場所：
-対象：
-内容：
-
-─────────────────────
-【詳細】
-
-
-─────────────────────
-【参加方法】
-
-
-締め切り：
-
-お問い合わせ：`
-  },
-  {
-    title: '活動報告書テンプレート',
-    type: '報告書',
-    desc: 'イベント・活動後の報告',
-    content: `【活動報告書】
-
-活動名：
-実施日時：
-実施場所：
-参加人数：
-担当者：
-
-─────────────────────
-■ 活動概要
-
-
-─────────────────────
-■ 活動内容・タイムライン
-
-
-─────────────────────
-■ 収支報告
-
-収入：¥
-支出：¥
-収支：¥
-
-─────────────────────
-■ 成果・反省点
-
-
-─────────────────────
-■ 次回への提案・引き継ぎ事項
-
-
-作成日：
-作成者：`
-  },
-  {
-    title: '部費徴収通知テンプレート',
-    type: '告知文',
-    desc: '部費・会費徴収用',
-    content: `【部費徴収のご案内】
-
-メンバーの皆さんへ
-
-下記の通り部費の徴収を行います。
-
-─────────────────────
-■ 徴収額：¥
-
-■ 期間：  年  月分
-
-■ 支払い締め切り：  年  月  日（）
-
-■ 支払い方法：
-  □ 現金（会計担当まで直接）
-  □ 振込（口座情報は別途連絡）
-
-─────────────────────
-不明な点は会計担当までお問い合わせください。
-
-会計担当：
-連絡先：`
-  }
-];
-
-function populateEventSelects() {
+// ========== OPINIONS ==========
+function renderOpinions() {
+  const filter = document.getElementById('opinion-event-filter')?.value || 'all';
   const events = DB.get('events').sort((a, b) => new Date(a.date) - new Date(b.date));
-  const options = '<option value="">なし</option>' + events.map(e => `<option value="${e.id}">${formatDate(e.date)} ${esc(e.title)}</option>`).join('');
-  const filterOptions = '<option value="all">すべてのイベント</option>' + events.map(e => `<option value="${e.id}">${formatDate(e.date)} ${esc(e.title)}</option>`).join('');
-  document.getElementById('doc-event').innerHTML = options;
-  document.getElementById('doc-event-filter').innerHTML = filterOptions;
-}
 
-function openDocModal() {
-  populateEventSelects();
-  document.getElementById('doc-modal-title').textContent = '文書作成';
-  document.getElementById('doc-edit-id').value = '';
-  document.getElementById('doc-title').value = '';
-  document.getElementById('doc-type').value = '議事録';
-  document.getElementById('doc-content').value = '';
-  document.getElementById('doc-event').value = '';
-  openModal('doc-modal');
-}
+  // Update filter dropdown
+  const filterEl = document.getElementById('opinion-event-filter');
+  if (filterEl) {
+    const current = filterEl.value;
+    filterEl.innerHTML = '<option value="all">すべてのイベント</option>' +
+      events.map(e => `<option value="${e.id}">${formatDate(e.date)} ${esc(e.title)}</option>`).join('');
+    filterEl.value = current;
+  }
 
-function renderDocs() {
-  const filter = document.getElementById('doc-event-filter')?.value || 'all';
-  const events = DB.get('events');
-  let docs = DB.get('docs');
-  if (filter !== 'all') docs = docs.filter(d => d.eventId === filter);
-  const el = document.getElementById('docs-grid');
-  if (docs.length === 0) {
-    el.innerHTML = '<p class="empty-msg" style="padding:2rem">文書はありません。「文書作成」または「テンプレート」から作成してください。</p>';
+  let opinions = DB.get('opinions').sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  if (filter !== 'all') opinions = opinions.filter(o => o.eventId === filter);
+
+  const el = document.getElementById('opinions-list');
+  if (!el) return;
+  if (opinions.length === 0) {
+    el.innerHTML = '<p class="empty-msg">意見・アイデアはまだありません</p>';
     return;
   }
-  el.innerHTML = docs.map(d => {
-    const ev = d.eventId ? events.find(e => e.id === d.eventId) : null;
+  el.innerHTML = opinions.map(o => {
+    const ev = o.eventId ? events.find(e => e.id === o.eventId) : null;
     return `
-    <div class="doc-card" onclick="viewDoc('${d.id}')">
-      <div class="doc-card-type">${d.type}${ev ? ' | ' + esc(ev.title) : ''}</div>
-      <div class="doc-card-title">${esc(d.title)}</div>
-      <div class="doc-card-date">${formatDate(d.updatedAt || d.createdAt)}</div>
-      <div class="doc-card-actions" onclick="event.stopPropagation()">
-        <button class="btn btn-outline btn-sm" onclick="editDoc('${d.id}')">編集</button>
-        <button class="btn btn-danger btn-sm" onclick="deleteDoc('${d.id}')">削除</button>
+    <div class="event-list-item" style="align-items:flex-start">
+      <span class="event-date-badge">${o.createdAt ? o.createdAt.slice(5,10).replace('-','/') : ''}</span>
+      <div style="flex:1">
+        <div class="event-list-title">${esc(o.name)}${ev ? ' <span style="color:var(--primary);font-size:0.8rem">— ' + esc(ev.title) + '</span>' : ''}</div>
+        <div style="margin-top:0.4rem;font-size:0.875rem;color:var(--gray-700);white-space:pre-wrap">${esc(o.text)}</div>
       </div>
+      <button class="btn btn-danger btn-sm" onclick="deleteOpinion('${o.id}')">削除</button>
     </div>
   `;}).join('');
 }
 
-function saveDoc() {
-  const title = document.getElementById('doc-title').value.trim();
-  if (!title) { alert('タイトルを入力してください'); return; }
-  const id = document.getElementById('doc-edit-id').value;
-  const docs = DB.get('docs');
-  const now = new Date().toISOString().slice(0, 10);
-  const doc = {
-    id: id || genId(),
-    title,
-    type: document.getElementById('doc-type').value,
-    eventId: document.getElementById('doc-event').value || null,
-    content: document.getElementById('doc-content').value,
-    createdAt: id ? (docs.find(d => d.id === id)?.createdAt || now) : now,
-    updatedAt: now,
-  };
-  if (id) {
-    const idx = docs.findIndex(d => d.id === id);
-    docs[idx] = doc;
-  } else {
-    docs.push(doc);
-  }
-  DB.set('docs', docs);
-  closeModal('doc-modal');
-  renderDocs();
+function deleteOpinion(id) {
+  if (!confirm('この意見を削除しますか？')) return;
+  DB.set('opinions', DB.get('opinions').filter(o => o.id !== id));
+  renderOpinions();
   updateDashboard();
-  showToast(id ? '文書を更新しました' : '文書を保存しました');
-}
-
-function viewDoc(id) {
-  const d = DB.get('docs').find(d => d.id === id);
-  if (!d) return;
-  document.getElementById('doc-view-content').innerHTML = `
-    <div style="margin-bottom:1rem">
-      <span style="color:var(--primary);font-size:0.8rem;font-weight:500">${d.type}</span>
-      <h2 style="margin:0.25rem 0">${esc(d.title)}</h2>
-      <small style="color:var(--gray-500)">${formatDate(d.updatedAt || d.createdAt)}</small>
-    </div>
-    <pre style="white-space:pre-wrap;font-family:inherit;font-size:0.9rem;line-height:1.7;border:1px solid var(--gray-200);padding:1rem;border-radius:8px;background:var(--gray-50)">${esc(d.content)}</pre>
-  `;
-  document.getElementById('doc-view-modal').dataset.docId = id;
-  openModal('doc-view-modal');
-}
-
-function editDocFromView() {
-  const id = document.getElementById('doc-view-modal').dataset.docId;
-  closeModal('doc-view-modal');
-  editDoc(id);
-}
-
-function printDocFromView() {
-  window.print();
-}
-
-function editDoc(id) {
-  const d = DB.get('docs').find(d => d.id === id);
-  if (!d) return;
-  populateEventSelects();
-  document.getElementById('doc-modal-title').textContent = '文書編集';
-  document.getElementById('doc-edit-id').value = d.id;
-  document.getElementById('doc-title').value = d.title;
-  document.getElementById('doc-type').value = d.type;
-  document.getElementById('doc-event').value = d.eventId || '';
-  document.getElementById('doc-content').value = d.content;
-  openModal('doc-modal');
-}
-
-function deleteDoc(id) {
-  if (!confirm('この文書を削除しますか？')) return;
-  DB.set('docs', DB.get('docs').filter(d => d.id !== id));
-  renderDocs();
-  updateDashboard();
-  showToast('文書を削除しました');
-}
-
-function printDoc() {
-  window.print();
-}
-
-function showTemplates() {
-  const el = document.getElementById('template-list');
-  el.innerHTML = TEMPLATES.map((t, i) => `
-    <div class="template-item" onclick="useTemplate(${i})">
-      <div class="template-item-title">${t.title}</div>
-      <div class="template-item-desc">${t.desc}</div>
-    </div>
-  `).join('');
-  openModal('template-modal');
-}
-
-function useTemplate(idx) {
-  const t = TEMPLATES[idx];
-  closeModal('template-modal');
-  populateEventSelects();
-  document.getElementById('doc-modal-title').textContent = '文書作成';
-  document.getElementById('doc-edit-id').value = '';
-  document.getElementById('doc-title').value = t.title.replace('テンプレート', '');
-  document.getElementById('doc-type').value = t.type;
-  document.getElementById('doc-event').value = '';
-  document.getElementById('doc-content').value = t.content;
-  openModal('doc-modal');
+  showToast('削除しました');
 }
 
 // ========== CSV EXPORT ==========
@@ -790,7 +552,6 @@ function openModal(id) {
 
 function closeModal(id) {
   document.getElementById(id).style.display = 'none';
-  // Reset member form
   if (id === 'member-modal') {
     document.getElementById('member-modal-title').textContent = 'メンバー追加';
     document.getElementById('member-edit-id').value = '';
@@ -809,14 +570,6 @@ function closeModal(id) {
     ['t-date','t-amount','t-desc','t-person','t-note'].forEach(f => document.getElementById(f).value = '');
     document.getElementById('t-type').value = 'income';
     document.getElementById('t-category').value = '部費';
-  }
-  if (id === 'doc-modal') {
-    document.getElementById('doc-modal-title').textContent = '文書作成';
-    document.getElementById('doc-edit-id').value = '';
-    document.getElementById('doc-title').value = '';
-    document.getElementById('doc-content').value = '';
-    document.getElementById('doc-type').value = '議事録';
-    document.getElementById('doc-event').value = '';
   }
 }
 
