@@ -335,6 +335,8 @@ tr:last-child td { border-bottom: none; }
   min-height: 80px;
   padding: 0.4rem;
   font-size: 0.8rem;
+  overflow: hidden;
+  min-width: 0;
 }
 
 .calendar-cell.empty { background: var(--gray-50); }
