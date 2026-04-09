@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>A-boost サークル管理システム</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <div class="header-left">
+        <h1>⚡ A-boost</h1>
+        <span class="subtitle">サークル管理システム</span>
+      </div>
+      <nav class="nav">
+        <button class="nav-btn active" data-page="dashboard">ダッシュボード</button>
+        <button class="nav-btn" data-page="members">メンバー</button>
+        <button class="nav-btn" data-page="schedule">スケジュール</button>
+        <button class="nav-btn" data-page="accounting">会計</button>
+        <button class="nav-btn" data-page="documents">文書</button>
+      </nav>
+    </header>
+
+    <main class="main">
+      <!-- ダッシュボード -->
+      <section id="page-dashboard" class="page active">
+        <h2>ダッシュボード</h2>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon">👥</div>
+            <div class="stat-value" id="stat-members">0</div>
+            <div class="stat-label">メンバー数</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">📅</div>
+            <div class="stat-value" id="stat-events">0</div>
+            <div class="stat-label">今月のイベント</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">💰</div>
+            <div class="stat-value" id="stat-balance">¥0</div>
+            <div class="stat-label">現在残高</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">📄</div>
+            <div class="stat-value" id="stat-docs">0</div>
+            <div class="stat-label">文書数</div>
+          </div>
+        </div>
+
+        <div class="dashboard-grid">
+          <div class="card">
+            <h3>直近のイベント</h3>
+            <div id="upcoming-events" class="list-container">
+              <p class="empty-msg">イベントはありません</p>
+            </div>
+          </div>
+          <div class="card">
+            <h3>最近の収支</h3>
+            <div id="recent-transactions" class="list-container">
+              <p class="empty-msg">収支記録はありません</p>
+            </div>
+          </div>
+          <div class="card">
+            <h3>お知らせ・メモ</h3>
+            <textarea id="notice-board" placeholder="サークル全体へのお知らせやメモを入力..." rows="6"></textarea>
+            <button class="btn btn-primary" onclick="saveNotice()">保存</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- メンバー管理 -->
+      <section id="page-members" class="page">
+        <h2>メンバー管理</h2>
+
+        <div class="card" style="margin-bottom:1rem">
+          <h3 id="inline-form-title">メンバー追加</h3>
+          <input type="hidden" id="inline-edit-id">
+          <div class="form-grid">
+            <div class="form-group">
+              <label>名前 *</label>
+              <input type="text" id="if-name" placeholder="山田 太郎">
+            </div>
+            <div class="form-group">
+              <label>学年</label>
+              <select id="if-grade">
+                <option value="B1">B1</option>
+                <option value="B2">B2</option>
+                <option value="B3">B3</option>
+                <option value="B4">B4</option>
+                <option value="M1">M1</option>
+                <option value="M2">M2</option>
+                <option value="D">D</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>学科/専攻</label>
+              <input type="text" id="if-dept" placeholder="情報工学科">
+            </div>
+            <div class="form-group">
+              <label>LINE名</label>
+              <input type="text" id="if-line" placeholder="LINE表示名">
+            </div>
+          </div>
+          <div style="display:flex;gap:0.5rem">
+            <button class="btn btn-primary" onclick="saveInlineMember()">保存</button>
+            <button class="btn btn-outline" id="inline-cancel-btn" style="display:none" onclick="cancelInlineEdit()">キャンセル</button>
+          </div>
+        </div>
+
+        <div class="toolbar">
+          <input type="text" id="member-search" placeholder="名前・学年・学科で検索..." oninput="renderMembers()">
+          <button class="btn btn-outline" onclick="exportCSV('members')">CSVエクスポート</button>
+        </div>
+        <div class="table-container">
+          <table id="members-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>名前</th>
+                <th>学年</th>
+                <th>学科/専攻</th>
+                <th>LINE名</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="members-tbody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- スケジュール -->
+      <section id="page-schedule" class="page">
+        <h2>スケジュール管理</h2>
+        <div class="toolbar">
+          <button class="btn btn-primary" onclick="openModal('event-modal')">+ イベント追加</button>
+          <select id="event-filter" onchange="renderEvents()">
+            <option value="all">すべて</option>
+            <option value="practice">練習・活動</option>
+            <option value="event">イベント・本番</option>
+            <option value="meeting">会議・打ち合わせ</option>
+            <option value="other">その他</option>
+          </select>
+        </div>
+        <div class="calendar-nav">
+          <button class="btn btn-outline" onclick="changeMonth(-1)">◀</button>
+          <span id="calendar-title"></span>
+          <button class="btn btn-outline" onclick="changeMonth(1)">▶</button>
+        </div>
+        <div id="calendar" class="calendar"></div>
+        <div class="card" style="margin-top:1rem">
+          <h3>イベント一覧</h3>
+          <div id="events-list" class="list-container"></div>
+        </div>
+      </section>
+
+      <!-- 会計 -->
+      <section id="page-accounting" class="page">
+        <h2>会計管理</h2>
+        <div class="accounting-summary">
+          <div class="money-card income">
+            <div class="money-label">総収入</div>
+            <div class="money-value" id="total-income">¥0</div>
+          </div>
+          <div class="money-card expense">
+            <div class="money-label">総支出</div>
+            <div class="money-value" id="total-expense">¥0</div>
+          </div>
+          <div class="money-card balance">
+            <div class="money-label">残高</div>
+            <div class="money-value" id="balance-display">¥0</div>
+          </div>
+        </div>
+        <div class="toolbar">
+          <button class="btn btn-primary" onclick="openModal('transaction-modal')">+ 収支追加</button>
+          <select id="transaction-filter" onchange="renderTransactions()">
+            <option value="all">すべて</option>
+            <option value="income">収入のみ</option>
+            <option value="expense">支出のみ</option>
+          </select>
+          <button class="btn btn-outline" onclick="exportCSV('transactions')">CSVエクスポート</button>
+        </div>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>日付</th>
+                <th>種別</th>
+                <th>カテゴリ</th>
+                <th>内容</th>
+                <th>金額</th>
+                <th>担当者</th>
+                <th>備考</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="transactions-tbody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 文書管理 -->
+      <section id="page-documents" class="page">
+        <h2>文書管理</h2>
+        <div class="toolbar">
+          <button class="btn btn-primary" onclick="openModal('doc-modal')">+ 文書作成</button>
+          <button class="btn btn-outline" onclick="showTemplates()">テンプレート</button>
+        </div>
+        <div id="docs-grid" class="docs-grid"></div>
+      </section>
+    </main>
+  </div>
+
+  <!-- メンバー追加モーダル -->
+  <div id="member-modal" class="modal-overlay" style="display:none">
+    <div class="modal">
+      <h3 id="member-modal-title">メンバー追加</h3>
+      <input type="hidden" id="member-edit-id">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>名前 *</label>
+          <input type="text" id="m-name" placeholder="山田 太郎">
+        </div>
+        <div class="form-group">
+          <label>学年</label>
+          <select id="m-grade">
+            <option value="B1">B1</option>
+            <option value="B2">B2</option>
+            <option value="B3">B3</option>
+            <option value="B4">B4</option>
+            <option value="M1">M1</option>
+            <option value="M2">M2</option>
+            <option value="D">D</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>学科/専攻</label>
+          <input type="text" id="m-dept" placeholder="情報工学科">
+        </div>
+        <div class="form-group">
+          <label>LINE名</label>
+          <input type="text" id="m-email" placeholder="LINE表示名">
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-primary" onclick="saveMember()">保存</button>
+        <button class="btn btn-outline" onclick="closeModal('member-modal')">キャンセル</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- イベント追加モーダル -->
+  <div id="event-modal" class="modal-overlay" style="display:none">
+    <div class="modal">
+      <h3 id="event-modal-title">イベント追加</h3>
+      <input type="hidden" id="event-edit-id">
+      <div class="form-grid">
+        <div class="form-group full-width">
+          <label>タイトル *</label>
+          <input type="text" id="e-title" placeholder="定期練習">
+        </div>
+        <div class="form-group">
+          <label>日付 *</label>
+          <input type="date" id="e-date">
+        </div>
+        <div class="form-group">
+          <label>時間</label>
+          <input type="time" id="e-time">
+        </div>
+        <div class="form-group">
+          <label>終了時間</label>
+          <input type="time" id="e-endtime">
+        </div>
+        <div class="form-group">
+          <label>種別</label>
+          <select id="e-type">
+            <option value="practice">練習・活動</option>
+            <option value="event">イベント・本番</option>
+            <option value="meeting">会議・打ち合わせ</option>
+            <option value="other">その他</option>
+          </select>
+        </div>
+        <div class="form-group full-width">
+          <label>場所</label>
+          <input type="text" id="e-location" placeholder="第1会議室 / Zoom">
+        </div>
+        <div class="form-group full-width">
+          <label>説明</label>
+          <textarea id="e-desc" placeholder="詳細・持ち物など..." rows="3"></textarea>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-primary" onclick="saveEvent()">保存</button>
+        <button class="btn btn-outline" onclick="closeModal('event-modal')">キャンセル</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 収支追加モーダル -->
+  <div id="transaction-modal" class="modal-overlay" style="display:none">
+    <div class="modal">
+      <h3 id="transaction-modal-title">収支追加</h3>
+      <input type="hidden" id="t-edit-id">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>日付 *</label>
+          <input type="date" id="t-date">
+        </div>
+        <div class="form-group">
+          <label>種別 *</label>
+          <select id="t-type">
+            <option value="income">収入</option>
+            <option value="expense">支出</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>カテゴリ</label>
+          <select id="t-category">
+            <option value="部費">部費</option>
+            <option value="補助金">補助金・助成金</option>
+            <option value="物品費">物品費</option>
+            <option value="会場費">会場費</option>
+            <option value="交通費">交通費</option>
+            <option value="飲食費">飲食費</option>
+            <option value="印刷費">印刷費</option>
+            <option value="その他">その他</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>金額 *</label>
+          <input type="number" id="t-amount" placeholder="0" min="0">
+        </div>
+        <div class="form-group full-width">
+          <label>内容 *</label>
+          <input type="text" id="t-desc" placeholder="練習会場費 4月分">
+        </div>
+        <div class="form-group">
+          <label>担当者</label>
+          <input type="text" id="t-person" placeholder="山田 太郎">
+        </div>
+        <div class="form-group full-width">
+          <label>備考</label>
+          <textarea id="t-note" placeholder="レシートNo.など..." rows="2"></textarea>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-primary" onclick="saveTransaction()">保存</button>
+        <button class="btn btn-outline" onclick="closeModal('transaction-modal')">キャンセル</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 文書作成モーダル -->
+  <div id="doc-modal" class="modal-overlay" style="display:none">
+    <div class="modal modal-wide">
+      <h3 id="doc-modal-title">文書作成</h3>
+      <input type="hidden" id="doc-edit-id">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>タイトル *</label>
+          <input type="text" id="doc-title" placeholder="2024年度 総会議事録">
+        </div>
+        <div class="form-group">
+          <label>種別</label>
+          <select id="doc-type">
+            <option value="議事録">議事録</option>
+            <option value="告知文">告知文</option>
+            <option value="規約">規約・規則</option>
+            <option value="報告書">報告書</option>
+            <option value="その他">その他</option>
+          </select>
+        </div>
+        <div class="form-group full-width">
+          <label>本文</label>
+          <textarea id="doc-content" rows="12" placeholder="文書の内容を入力..."></textarea>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-primary" onclick="saveDoc()">保存</button>
+        <button class="btn btn-outline" onclick="printDoc()">印刷/PDF</button>
+        <button class="btn btn-outline" onclick="closeModal('doc-modal')">キャンセル</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- テンプレートモーダル -->
+  <div id="template-modal" class="modal-overlay" style="display:none">
+    <div class="modal">
+      <h3>テンプレート選択</h3>
+      <div class="template-list" id="template-list"></div>
+      <div class="modal-actions">
+        <button class="btn btn-outline" onclick="closeModal('template-modal')">閉じる</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 文書表示モーダル -->
+  <div id="doc-view-modal" class="modal-overlay" style="display:none">
+    <div class="modal modal-wide">
+      <div id="doc-view-content"></div>
+      <div class="modal-actions">
+        <button class="btn btn-primary" onclick="editDocFromView()">編集</button>
+        <button class="btn btn-outline" onclick="printDocFromView()">印刷/PDF</button>
+        <button class="btn btn-outline" onclick="closeModal('doc-view-modal')">閉じる</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
