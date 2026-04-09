@@ -204,8 +204,11 @@
       <section id="page-documents" class="page">
         <h2>文書管理</h2>
         <div class="toolbar">
-          <button class="btn btn-primary" onclick="openModal('doc-modal')">+ 文書作成</button>
+          <button class="btn btn-primary" onclick="openDocModal()">+ 文書作成</button>
           <button class="btn btn-outline" onclick="showTemplates()">テンプレート</button>
+          <select id="doc-event-filter" onchange="renderDocs()">
+            <option value="all">すべてのイベント</option>
+          </select>
         </div>
         <div id="docs-grid" class="docs-grid"></div>
       </section>
@@ -369,6 +372,12 @@
             <option value="規約">規約・規則</option>
             <option value="報告書">報告書</option>
             <option value="その他">その他</option>
+          </select>
+        </div>
+        <div class="form-group full-width">
+          <label>対象イベント</label>
+          <select id="doc-event">
+            <option value="">なし</option>
           </select>
         </div>
         <div class="form-group full-width">

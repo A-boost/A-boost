@@ -573,16 +573,40 @@ const TEMPLATES = [
   }
 ];
 
+function populateEventSelects() {
+  const events = DB.get('events').sort((a, b) => new Date(a.date) - new Date(b.date));
+  const options = '<option value="">なし</option>' + events.map(e => `<option value="${e.id}">${formatDate(e.date)} ${esc(e.title)}</option>`).join('');
+  const filterOptions = '<option value="all">すべてのイベント</option>' + events.map(e => `<option value="${e.id}">${formatDate(e.date)} ${esc(e.title)}</option>`).join('');
+  document.getElementById('doc-event').innerHTML = options;
+  document.getElementById('doc-event-filter').innerHTML = filterOptions;
+}
+
+function openDocModal() {
+  populateEventSelects();
+  document.getElementById('doc-modal-title').textContent = '文書作成';
+  document.getElementById('doc-edit-id').value = '';
+  document.getElementById('doc-title').value = '';
+  document.getElementById('doc-type').value = '議事録';
+  document.getElementById('doc-content').value = '';
+  document.getElementById('doc-event').value = '';
+  openModal('doc-modal');
+}
+
 function renderDocs() {
-  const docs = DB.get('docs');
+  const filter = document.getElementById('doc-event-filter')?.value || 'all';
+  const events = DB.get('events');
+  let docs = DB.get('docs');
+  if (filter !== 'all') docs = docs.filter(d => d.eventId === filter);
   const el = document.getElementById('docs-grid');
   if (docs.length === 0) {
     el.innerHTML = '<p class="empty-msg" style="padding:2rem">文書はありません。「文書作成」または「テンプレート」から作成してください。</p>';
     return;
   }
-  el.innerHTML = docs.map(d => `
+  el.innerHTML = docs.map(d => {
+    const ev = d.eventId ? events.find(e => e.id === d.eventId) : null;
+    return `
     <div class="doc-card" onclick="viewDoc('${d.id}')">
-      <div class="doc-card-type">${d.type}</div>
+      <div class="doc-card-type">${d.type}${ev ? ' | ' + esc(ev.title) : ''}</div>
       <div class="doc-card-title">${esc(d.title)}</div>
       <div class="doc-card-date">${formatDate(d.updatedAt || d.createdAt)}</div>
       <div class="doc-card-actions" onclick="event.stopPropagation()">
@@ -590,7 +614,7 @@ function renderDocs() {
         <button class="btn btn-danger btn-sm" onclick="deleteDoc('${d.id}')">削除</button>
       </div>
     </div>
-  `).join('');
+  `;}).join('');
 }
 
 function saveDoc() {
@@ -603,6 +627,7 @@ function saveDoc() {
     id: id || genId(),
     title,
     type: document.getElementById('doc-type').value,
+    eventId: document.getElementById('doc-event').value || null,
     content: document.getElementById('doc-content').value,
     createdAt: id ? (docs.find(d => d.id === id)?.createdAt || now) : now,
     updatedAt: now,
@@ -648,10 +673,12 @@ function printDocFromView() {
 function editDoc(id) {
   const d = DB.get('docs').find(d => d.id === id);
   if (!d) return;
+  populateEventSelects();
   document.getElementById('doc-modal-title').textContent = '文書編集';
   document.getElementById('doc-edit-id').value = d.id;
   document.getElementById('doc-title').value = d.title;
   document.getElementById('doc-type').value = d.type;
+  document.getElementById('doc-event').value = d.eventId || '';
   document.getElementById('doc-content').value = d.content;
   openModal('doc-modal');
 }
@@ -682,10 +709,12 @@ function showTemplates() {
 function useTemplate(idx) {
   const t = TEMPLATES[idx];
   closeModal('template-modal');
+  populateEventSelects();
   document.getElementById('doc-modal-title').textContent = '文書作成';
   document.getElementById('doc-edit-id').value = '';
   document.getElementById('doc-title').value = t.title.replace('テンプレート', '');
   document.getElementById('doc-type').value = t.type;
+  document.getElementById('doc-event').value = '';
   document.getElementById('doc-content').value = t.content;
   openModal('doc-modal');
 }
@@ -746,6 +775,7 @@ function closeModal(id) {
     document.getElementById('doc-title').value = '';
     document.getElementById('doc-content').value = '';
     document.getElementById('doc-type').value = '議事録';
+    document.getElementById('doc-event').value = '';
   }
 }
 
