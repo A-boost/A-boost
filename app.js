@@ -192,7 +192,7 @@ function cancelInlineEdit() {
   document.getElementById('inline-form-title').textContent = 'メンバー追加';
   document.getElementById('inline-edit-id').value = '';
   document.getElementById('if-name').value = '';
-  document.getElementById('if-grade').value = 'B1';
+  document.getElementById('if-grade').value = '1年';
   document.getElementById('if-dept').value = '';
   document.getElementById('if-line').value = '';
   document.getElementById('inline-cancel-btn').style.display = 'none';
@@ -602,7 +602,7 @@ function closeModal(id) {
     document.getElementById('member-modal-title').textContent = 'メンバー追加';
     document.getElementById('member-edit-id').value = '';
     ['m-name','m-dept','m-email'].forEach(f => document.getElementById(f).value = '');
-    document.getElementById('m-grade').value = 'B1';
+    document.getElementById('m-grade').value = '1年';
   }
   if (id === 'event-modal') {
     document.getElementById('event-modal-title').textContent = 'イベント追加';
