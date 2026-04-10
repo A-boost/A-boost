@@ -215,6 +215,26 @@
       <!-- 意見・アイデア -->
       <section id="page-documents" class="page">
         <h2>意見・アイデア</h2>
+        <div class="card" style="margin-bottom:1rem">
+          <h3>投稿する</h3>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>名前 *</label>
+              <input type="text" id="opinion-name" placeholder="名前を入力">
+            </div>
+            <div class="form-group">
+              <label>対象イベント</label>
+              <select id="opinion-event-select">
+                <option value="">なし（全体への意見）</option>
+              </select>
+            </div>
+            <div class="form-group full-width">
+              <label>意見・アイデア *</label>
+              <textarea id="opinion-text" rows="3" placeholder="自由に書いてください..."></textarea>
+            </div>
+          </div>
+          <button class="btn btn-primary" onclick="postOpinion()">投稿する</button>
+        </div>
         <div class="toolbar">
           <select id="opinion-event-filter" onchange="renderOpinions()">
             <option value="all">すべてのイベント</option>

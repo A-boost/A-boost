@@ -555,8 +555,14 @@ function deleteTodo(id) {
 function renderOpinions() {
   const filter = document.getElementById('opinion-event-filter')?.value || 'all';
   const events = DB.get('events').sort((a, b) => new Date(a.date) - new Date(b.date));
+  const eventOptions = '<option value="">なし（全体への意見）</option>' +
+    events.map(e => `<option value="${e.id}">${formatDate(e.date)} ${esc(e.title)}</option>`).join('');
 
-  // Update filter dropdown
+  // 投稿フォームのイベント選択肢を更新
+  const selectEl = document.getElementById('opinion-event-select');
+  if (selectEl) selectEl.innerHTML = eventOptions;
+
+  // フィルタードロップダウンを更新
   const filterEl = document.getElementById('opinion-event-filter');
   if (filterEl) {
     const current = filterEl.value;
@@ -586,6 +592,28 @@ function renderOpinions() {
       <button class="btn btn-danger btn-sm" onclick="deleteOpinion('${o.id}')">削除</button>
     </div>
   `;}).join('');
+}
+
+function postOpinion() {
+  const name = document.getElementById('opinion-name').value.trim();
+  const text = document.getElementById('opinion-text').value.trim();
+  if (!name) { alert('名前を入力してください'); return; }
+  if (!text) { alert('意見・アイデアを入力してください'); return; }
+  const eventId = document.getElementById('opinion-event-select').value || null;
+  const opinions = DB.get('opinions');
+  opinions.push({
+    id: genId(),
+    name,
+    eventId,
+    text,
+    createdAt: new Date().toISOString().slice(0, 10),
+  });
+  DB.set('opinions', opinions);
+  document.getElementById('opinion-name').value = '';
+  document.getElementById('opinion-text').value = '';
+  document.getElementById('opinion-event-select').value = '';
+  updateDashboard();
+  showToast('投稿しました');
 }
 
 function deleteOpinion(id) {
