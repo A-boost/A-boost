@@ -497,6 +497,7 @@ function renderTodos() {
     <div style="display:flex;align-items:center;gap:0.5rem;padding:0.4rem 0;border-bottom:1px solid var(--gray-100)">
       <input type="checkbox" ${t.done ? 'checked' : ''} onchange="toggleTodo('${t.id}')" style="width:16px;height:16px;cursor:pointer">
       <span style="flex:1;font-size:0.875rem;${t.done ? 'text-decoration:line-through;color:var(--gray-500)' : ''}">${esc(t.text)}</span>
+      ${t.person ? `<span style="font-size:0.75rem;background:var(--primary-light);color:var(--primary);padding:0.15rem 0.5rem;border-radius:4px">${esc(t.person)}</span>` : ''}
       <button class="btn btn-danger btn-sm" onclick="deleteTodo('${t.id}')">削除</button>
     </div>
   `).join('');
@@ -506,10 +507,12 @@ function addTodo() {
   const input = document.getElementById('todo-input');
   const text = input.value.trim();
   if (!text) return;
+  const person = document.getElementById('todo-person').value;
   const todos = DB.get('todos');
-  todos.push({ id: genId(), text, done: false });
+  todos.push({ id: genId(), text, person, done: false });
   DB.set('todos', todos);
   input.value = '';
+  document.getElementById('todo-person').value = '';
 }
 
 function toggleTodo(id) {

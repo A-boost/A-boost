@@ -30,8 +30,15 @@
         <!-- ToDoリスト -->
         <div class="card" style="margin-bottom:1.5rem">
           <h3>ToDoリスト</h3>
-          <div style="display:flex;gap:0.5rem;margin-bottom:0.75rem">
-            <input type="text" id="todo-input" placeholder="タスクを入力..." style="flex:1" onkeydown="if(event.key==='Enter')addTodo()">
+          <div style="display:flex;gap:0.5rem;margin-bottom:0.75rem;flex-wrap:wrap">
+            <input type="text" id="todo-input" placeholder="タスクを入力..." style="flex:2;min-width:150px" onkeydown="if(event.key==='Enter')addTodo()">
+            <select id="todo-person" style="flex:1;min-width:100px">
+              <option value="">担当者</option>
+              <option value="いっしん">いっしん</option>
+              <option value="さき">さき</option>
+              <option value="きょーか">きょーか</option>
+              <option value="とうた">とうた</option>
+            </select>
             <button class="btn btn-primary" onclick="addTodo()">追加</button>
           </div>
           <div id="todo-list"></div>
