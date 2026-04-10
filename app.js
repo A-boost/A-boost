@@ -13,7 +13,7 @@ firebase.initializeApp(firebaseConfig);
 const fsdb = firebase.firestore();
 const dataRef = fsdb.collection('app').doc('data');
 
-const STATE = { members: [], events: [], transactions: [], opinions: [], notice: '' };
+const STATE = { members: [], events: [], transactions: [], opinions: [], todos: [], notice: '' };
 
 dataRef.get().then(snap => {
   if (!snap.exists) dataRef.set(STATE);
@@ -26,8 +26,10 @@ dataRef.onSnapshot(snap => {
   STATE.events = data.events || [];
   STATE.transactions = data.transactions || [];
   STATE.opinions = data.opinions || [];
+  STATE.todos = data.todos || [];
   STATE.notice = data.notice || '';
   updateDashboard();
+  renderTodos();
   renderMembers();
   renderCalendar();
   renderTransactions();
@@ -480,6 +482,45 @@ function deleteTransaction(id) {
   renderTransactions();
   updateDashboard();
   showToast('収支を削除しました');
+}
+
+// ========== TODO ==========
+function renderTodos() {
+  const todos = DB.get('todos');
+  const el = document.getElementById('todo-list');
+  if (!el) return;
+  if (todos.length === 0) {
+    el.innerHTML = '<p class="empty-msg">ToDoはありません</p>';
+    return;
+  }
+  el.innerHTML = todos.map(t => `
+    <div style="display:flex;align-items:center;gap:0.5rem;padding:0.4rem 0;border-bottom:1px solid var(--gray-100)">
+      <input type="checkbox" ${t.done ? 'checked' : ''} onchange="toggleTodo('${t.id}')" style="width:16px;height:16px;cursor:pointer">
+      <span style="flex:1;font-size:0.875rem;${t.done ? 'text-decoration:line-through;color:var(--gray-500)' : ''}">${esc(t.text)}</span>
+      <button class="btn btn-danger btn-sm" onclick="deleteTodo('${t.id}')">削除</button>
+    </div>
+  `).join('');
+}
+
+function addTodo() {
+  const input = document.getElementById('todo-input');
+  const text = input.value.trim();
+  if (!text) return;
+  const todos = DB.get('todos');
+  todos.push({ id: genId(), text, done: false });
+  DB.set('todos', todos);
+  input.value = '';
+}
+
+function toggleTodo(id) {
+  const todos = DB.get('todos');
+  const t = todos.find(t => t.id === id);
+  if (t) t.done = !t.done;
+  DB.set('todos', todos);
+}
+
+function deleteTodo(id) {
+  DB.set('todos', DB.get('todos').filter(t => t.id !== id));
 }
 
 // ========== OPINIONS ==========

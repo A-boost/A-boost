@@ -26,6 +26,17 @@
       <!-- ダッシュボード -->
       <section id="page-dashboard" class="page active">
         <h2>ダッシュボード</h2>
+
+        <!-- ToDoリスト -->
+        <div class="card" style="margin-bottom:1.5rem">
+          <h3>ToDoリスト</h3>
+          <div style="display:flex;gap:0.5rem;margin-bottom:0.75rem">
+            <input type="text" id="todo-input" placeholder="タスクを入力..." style="flex:1" onkeydown="if(event.key==='Enter')addTodo()">
+            <button class="btn btn-primary" onclick="addTodo()">追加</button>
+          </div>
+          <div id="todo-list"></div>
+        </div>
+
         <div class="stats-grid">
           <div class="stat-card">
             <div class="stat-icon">👥</div>
