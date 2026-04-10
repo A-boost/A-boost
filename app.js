@@ -305,7 +305,14 @@ function renderEvents() {
     el.innerHTML = '<p class="empty-msg">イベントはありません</p>';
     return;
   }
-  el.innerHTML = events.map(e => `
+  const members = DB.get('members');
+  el.innerHTML = events.map(e => {
+    const coordinators = (e.coordinatorIds || [])
+      .map(cid => members.find(m => m.id === cid))
+      .filter(Boolean)
+      .map(m => esc(m.name))
+      .join('、');
+    return `
     <div class="event-list-item">
       <span class="event-date-badge">${formatDate(e.date)}</span>
       <div style="flex:1">
@@ -316,6 +323,7 @@ function renderEvents() {
         <div class="event-list-meta">
           ${e.time ? '🕐 ' + e.time + (e.endtime ? ' – ' + e.endtime : '') : ''}
           ${e.location ? ' 📍' + esc(e.location) : ''}
+          ${coordinators ? ' 👤イベント係: ' + coordinators : ''}
         </div>
         ${e.desc ? `<div class="event-list-meta" style="margin-top:2px">${esc(e.desc)}</div>` : ''}
       </div>
@@ -324,7 +332,7 @@ function renderEvents() {
         <button class="btn btn-danger btn-sm" onclick="deleteEvent('${e.id}')">削除</button>
       </div>
     </div>
-  `).join('');
+  `;}).join('');
 }
 
 function typeLabel(t) {
@@ -336,12 +344,23 @@ function viewEvent(id) {
   if (e) alert(`${e.title}\n${formatDate(e.date)} ${e.time || ''}\n${e.location || ''}\n${e.desc || ''}`);
 }
 
+function populateCoordinatorSelect() {
+  const sel = document.getElementById('e-coordinator');
+  if (!sel) return;
+  const members = DB.get('members');
+  const current = Array.from(sel.selectedOptions).map(o => o.value);
+  sel.innerHTML = members.map(m =>
+    `<option value="${m.id}" ${current.includes(m.id) ? 'selected' : ''}>${esc(m.name)}（${m.grade || ''}）</option>`
+  ).join('');
+}
+
 function saveEvent() {
   const title = document.getElementById('e-title').value.trim();
   const date = document.getElementById('e-date').value;
   if (!title || !date) { alert('タイトルと日付は必須です'); return; }
   const id = document.getElementById('event-edit-id').value;
   const events = DB.get('events');
+  const coordinatorIds = Array.from(document.getElementById('e-coordinator').selectedOptions).map(o => o.value);
   const event = {
     id: id || genId(),
     title,
@@ -350,6 +369,7 @@ function saveEvent() {
     endtime: document.getElementById('e-endtime').value,
     type: document.getElementById('e-type').value,
     location: document.getElementById('e-location').value.trim(),
+    coordinatorIds,
     desc: document.getElementById('e-desc').value.trim(),
   };
   if (id) {
@@ -377,6 +397,10 @@ function editEvent(id) {
   document.getElementById('e-type').value = e.type;
   document.getElementById('e-location').value = e.location;
   document.getElementById('e-desc').value = e.desc;
+  populateCoordinatorSelect();
+  const sel = document.getElementById('e-coordinator');
+  const ids = e.coordinatorIds || [];
+  Array.from(sel.options).forEach(o => { o.selected = ids.includes(o.value); });
   openModal('event-modal');
 }
 
@@ -507,12 +531,13 @@ function addTodo() {
   const input = document.getElementById('todo-input');
   const text = input.value.trim();
   if (!text) return;
-  const person = document.getElementById('todo-person').value;
+  const checked = document.querySelectorAll('.todo-person-cb:checked');
+  const persons = Array.from(checked).map(cb => cb.value);
   const todos = DB.get('todos');
-  todos.push({ id: genId(), text, person, done: false });
+  todos.push({ id: genId(), text, person: persons.join('・'), done: false });
   DB.set('todos', todos);
   input.value = '';
-  document.getElementById('todo-person').value = '';
+  document.querySelectorAll('.todo-person-cb').forEach(cb => cb.checked = false);
 }
 
 function toggleTodo(id) {
@@ -597,6 +622,7 @@ function exportCSV(type) {
 // ========== MODAL ==========
 function openModal(id) {
   document.getElementById(id).style.display = 'flex';
+  if (id === 'event-modal') populateCoordinatorSelect();
 }
 
 function closeModal(id) {
@@ -612,6 +638,7 @@ function closeModal(id) {
     document.getElementById('event-edit-id').value = '';
     ['e-title','e-date','e-time','e-endtime','e-location','e-desc'].forEach(f => document.getElementById(f).value = '');
     document.getElementById('e-type').value = 'practice';
+    Array.from(document.getElementById('e-coordinator').options).forEach(o => o.selected = false);
   }
   if (id === 'transaction-modal') {
     document.getElementById('transaction-modal-title').textContent = '収支追加';

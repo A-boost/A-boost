@@ -30,16 +30,15 @@
         <!-- ToDoリスト -->
         <div class="card" style="margin-bottom:1.5rem">
           <h3>ToDoリスト</h3>
-          <div style="display:flex;gap:0.5rem;margin-bottom:0.75rem;flex-wrap:wrap">
-            <input type="text" id="todo-input" placeholder="タスクを入力..." style="flex:2;min-width:150px" onkeydown="if(event.key==='Enter')addTodo()">
-            <select id="todo-person" style="flex:1;min-width:100px">
-              <option value="">担当者</option>
-              <option value="いっしん">いっしん</option>
-              <option value="さき">さき</option>
-              <option value="きょーか">きょーか</option>
-              <option value="とうた">とうた</option>
-            </select>
+          <div style="display:flex;gap:0.5rem;margin-bottom:0.5rem">
+            <input type="text" id="todo-input" placeholder="タスクを入力..." style="flex:1" onkeydown="if(event.key==='Enter')addTodo()">
             <button class="btn btn-primary" onclick="addTodo()">追加</button>
+          </div>
+          <div style="display:flex;gap:0.75rem;margin-bottom:0.75rem;flex-wrap:wrap">
+            <label style="display:flex;align-items:center;gap:0.3rem;font-size:0.85rem;cursor:pointer"><input type="checkbox" class="todo-person-cb" value="いっしん"> いっしん</label>
+            <label style="display:flex;align-items:center;gap:0.3rem;font-size:0.85rem;cursor:pointer"><input type="checkbox" class="todo-person-cb" value="さき"> さき</label>
+            <label style="display:flex;align-items:center;gap:0.3rem;font-size:0.85rem;cursor:pointer"><input type="checkbox" class="todo-person-cb" value="きょーか"> きょーか</label>
+            <label style="display:flex;align-items:center;gap:0.3rem;font-size:0.85rem;cursor:pointer"><input type="checkbox" class="todo-person-cb" value="とうた"> とうた</label>
           </div>
           <div id="todo-list"></div>
         </div>
@@ -293,6 +292,12 @@
         <div class="form-group full-width">
           <label>場所</label>
           <input type="text" id="e-location" placeholder="第1会議室 / Zoom">
+        </div>
+        <div class="form-group full-width">
+          <label>イベント係（担当者）</label>
+          <select id="e-coordinator" multiple style="height:80px">
+          </select>
+          <div style="font-size:0.75rem;color:var(--gray-500);margin-top:2px">Ctrl（Mac: ⌘）を押しながらクリックで複数選択</div>
         </div>
         <div class="form-group full-width">
           <label>説明</label>
