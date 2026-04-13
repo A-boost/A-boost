@@ -141,7 +141,7 @@ function renderMembers() {
   const members = DB.get('members').filter(m => {
     if (!query) return true;
     return (m.name + m.grade + m.role + m.dept + m.email).toLowerCase().includes(query);
-  });
+  }).sort((a, b) => (a.grade || '').localeCompare(b.grade || '', 'ja'));
 
   const tbody = document.getElementById('members-tbody');
   if (members.length === 0) {
