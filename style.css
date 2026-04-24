@@ -31,8 +31,8 @@ body {
 
 /* Header */
 .header {
-  background: white;
-  border-bottom: 1px solid var(--gray-200);
+  background: linear-gradient(90deg, #ef4444, #f97316, #eab308, #22c55e, #3b82f6, #6366f1, #ec4899);
+  border-bottom: none;
   padding: 0 1.5rem;
   display: flex;
   align-items: center;
@@ -40,7 +40,7 @@ body {
   position: sticky;
   top: 0;
   z-index: 100;
-  box-shadow: var(--shadow);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.18);
 }
 
 .header-left {
@@ -53,12 +53,13 @@ body {
 .header h1 {
   font-size: 1.4rem;
   font-weight: 700;
-  color: var(--primary);
+  color: white;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.2);
 }
 
 .subtitle {
   font-size: 0.75rem;
-  color: var(--gray-500);
+  color: rgba(255,255,255,0.85);
 }
 
 .nav {
@@ -74,18 +75,20 @@ body {
   border-radius: 6px;
   cursor: pointer;
   font-size: 0.875rem;
-  color: var(--gray-700);
+  color: rgba(255,255,255,0.9);
   font-weight: 500;
   transition: all 0.15s;
 }
 
 .nav-btn:hover {
-  background: var(--gray-100);
+  background: rgba(255,255,255,0.2);
+  color: white;
 }
 
 .nav-btn.active {
-  background: var(--primary-light);
-  color: var(--primary);
+  background: rgba(255,255,255,0.28);
+  color: white;
+  font-weight: 700;
 }
 
 /* Main */
