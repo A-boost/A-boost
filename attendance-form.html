@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>出欠フォーム | A-boost</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body { background: var(--gray-50); }
+    .wrap { max-width: 480px; margin: 2rem auto; padding: 1rem; }
+    .logo { text-align: center; margin-bottom: 1.5rem; }
+    .logo h1 { color: var(--primary); font-size: 1.5rem; }
+    .logo p { color: var(--gray-500); font-size: 0.875rem; margin-top: 0.25rem; }
+    .status-row { display: flex; gap: 0.75rem; margin-top: 0.4rem; }
+    .s-btn {
+      flex: 1; padding: 0.75rem 0.5rem; border: 2px solid var(--gray-200);
+      border-radius: 8px; cursor: pointer; text-align: center; background: white;
+      transition: all 0.15s; font-size: 0; line-height: 1;
+    }
+    .s-btn .icon { font-size: 1.5rem; display: block; }
+    .s-btn .lbl { font-size: 0.7rem; color: var(--gray-500); display: block; margin-top: 0.3rem; }
+    .s-btn.sel-yes { border-color: var(--success); background: #d1fae5; }
+    .s-btn.sel-maybe { border-color: var(--warning); background: #fef3c7; }
+    .s-btn.sel-no { border-color: var(--danger); background: #fee2e2; }
+    .fg { margin-bottom: 0.9rem; }
+    .done { text-align: center; padding: 2.5rem 1rem; }
+    .done .icon { font-size: 3.5rem; display: block; margin-bottom: 0.75rem; }
+    .done p { color: var(--gray-700); margin-bottom: 1.25rem; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="logo">
+      <h1>⚡ A-boost</h1>
+      <p>出欠確認フォーム</p>
+    </div>
+
+    <div class="card" id="form-card">
+      <div class="fg">
+        <label class="form-group" style="display:block;font-size:0.8rem;font-weight:500;color:var(--gray-700);margin-bottom:0.3rem">イベントを選択 *</label>
+        <select id="sel-event"><option value="">読み込み中...</option></select>
+      </div>
+      <div class="fg">
+        <label style="display:block;font-size:0.8rem;font-weight:500;color:var(--gray-700);margin-bottom:0.3rem">名前 *</label>
+        <select id="sel-member"><option value="">名前を選択...</option></select>
+      </div>
+      <div class="fg">
+        <label style="display:block;font-size:0.8rem;font-weight:500;color:var(--gray-700);margin-bottom:0.3rem">出欠 *</label>
+        <div class="status-row">
+          <button class="s-btn" id="b-yes"   onclick="pick('yes')"  ><span class="icon">○</span><span class="lbl">参加</span></button>
+          <button class="s-btn" id="b-maybe" onclick="pick('maybe')"><span class="icon">△</span><span class="lbl">未定</span></button>
+          <button class="s-btn" id="b-no"    onclick="pick('no')"   ><span class="icon">×</span><span class="lbl">欠席</span></button>
+        </div>
+      </div>
+      <div class="fg">
+        <label style="display:block;font-size:0.8rem;font-weight:500;color:var(--gray-700);margin-bottom:0.3rem">コメント（任意）</label>
+        <textarea id="inp-comment" rows="2" placeholder="遅刻します、〇〇時頃来ます　など..."></textarea>
+      </div>
+      <button class="btn btn-primary" onclick="doSubmit()" style="width:100%;padding:0.7rem;font-size:1rem">送信する</button>
+    </div>
+
+    <div class="card done" id="done-card" style="display:none">
+      <span class="icon">✅</span>
+      <p>送信しました！</p>
+      <button class="btn btn-outline" onclick="doReset()">続けて入力する</button>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  <script>
+    firebase.initializeApp({
+      apiKey: "AIzaSyCJqp4e8BMkEbOO3ErWXJiz0zx9J3pxl34",
+      authDomain: "a-boost.firebaseapp.com",
+      projectId: "a-boost",
+      storageBucket: "a-boost.firebasestorage.app",
+      messagingSenderId: "431608615443",
+      appId: "1:431608615443:web:5fb112e76f2d6ef3b7e5e6"
+    });
+    const db = firebase.firestore();
+    const ref = db.collection('app').doc('data');
+
+    let status = '', members = [], events = [];
+
+    ref.get().then(snap => {
+      if (!snap.exists) return;
+      const d = snap.data();
+      const today = new Date().toISOString().slice(0, 10);
+      events = (d.events || [])
+        .filter(e => e.date >= today)
+        .sort((a, b) => a.date.localeCompare(b.date));
+      members = (d.members || [])
+        .sort((a, b) => (a.grade || '').localeCompare(b.grade || '', 'ja') || (a.name || '').localeCompare(b.name || '', 'ja'));
+
+      const esel = document.getElementById('sel-event');
+      esel.innerHTML = '<option value="">イベントを選択...</option>' +
+        events.map(e => `<option value="${e.id}">[${fmt(e.date)}] ${e.title}</option>`).join('');
+
+      const msel = document.getElementById('sel-member');
+      msel.innerHTML = '<option value="">名前を選択...</option>' +
+        members.map(m => `<option value="${m.id}">${m.name}（${m.grade || ''}）</option>`).join('');
+    });
+
+    function fmt(s) {
+      const d = new Date(s + 'T00:00:00');
+      return `${d.getMonth() + 1}/${d.getDate()}`;
+    }
+
+    function pick(s) {
+      status = s;
+      document.getElementById('b-yes').className   = 's-btn' + (s === 'yes'   ? ' sel-yes'   : '');
+      document.getElementById('b-maybe').className = 's-btn' + (s === 'maybe' ? ' sel-maybe' : '');
+      document.getElementById('b-no').className    = 's-btn' + (s === 'no'    ? ' sel-no'    : '');
+    }
+
+    function doSubmit() {
+      const eventId  = document.getElementById('sel-event').value;
+      const memberId = document.getElementById('sel-member').value;
+      const comment  = document.getElementById('inp-comment').value.trim();
+      if (!eventId)  { alert('イベントを選択してください'); return; }
+      if (!memberId) { alert('名前を選択してください'); return; }
+      if (!status)   { alert('出欠を選択してください'); return; }
+
+      const m = members.find(x => x.id === memberId);
+      ref.get().then(snap => {
+        const list = snap.data()?.attendances || [];
+        const idx = list.findIndex(a => a.eventId === eventId && a.memberId === memberId);
+        const rec = {
+          id: Date.now().toString(36) + Math.random().toString(36).slice(2, 5),
+          eventId, memberId, name: m?.name || '', status, comment,
+          at: new Date().toISOString().slice(0, 10)
+        };
+        if (idx >= 0) list[idx] = rec; else list.push(rec);
+        return ref.set({ attendances: list }, { merge: true });
+      }).then(() => {
+        document.getElementById('form-card').style.display = 'none';
+        document.getElementById('done-card').style.display = 'block';
+      });
+    }
+
+    function doReset() {
+      status = '';
+      ['b-yes', 'b-maybe', 'b-no'].forEach(id => document.getElementById(id).className = 's-btn');
+      document.getElementById('sel-event').value = '';
+      document.getElementById('sel-member').value = '';
+      document.getElementById('inp-comment').value = '';
+      document.getElementById('form-card').style.display = 'block';
+      document.getElementById('done-card').style.display = 'none';
+    }
+  </script>
+</body>
+</html>

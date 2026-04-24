@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>投票・アンケート | A-boost</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body { background: var(--gray-50); }
+    .wrap { max-width: 700px; margin: 0 auto; padding: 1.5rem; }
+    .header-bar {
+      background: white; border-bottom: 1px solid var(--gray-200);
+      padding: 0.75rem 1.5rem; display: flex; align-items: center; gap: 1rem;
+      position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow); margin-bottom: 1.5rem;
+    }
+    .header-bar h1 { color: var(--primary); font-size: 1.2rem; margin: 0; }
+    .admin-box {
+      background: #fffbeb; border: 1px solid #fde68a; border-radius: 10px;
+      padding: 1.25rem; margin-bottom: 1.5rem;
+    }
+    .admin-toggle { cursor: pointer; font-weight: 600; color: #92400e; list-style: none; }
+    .admin-toggle::before { content: '⚙ '; }
+    .poll-card { background: white; border-radius: 10px; padding: 1.25rem; box-shadow: var(--shadow); border: 1px solid var(--gray-200); margin-bottom: 1rem; }
+    .poll-question { font-size: 1.05rem; font-weight: 700; margin-bottom: 1rem; color: var(--gray-900); }
+    .option-row { display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem 0; border-bottom: 1px solid var(--gray-100); }
+    .option-row:last-child { border-bottom: none; }
+    .option-text { flex: 1; font-size: 0.875rem; }
+    .option-bar { height: 8px; background: var(--gray-200); border-radius: 4px; width: 100px; overflow: hidden; flex-shrink: 0; }
+    .option-fill { height: 100%; background: var(--primary); border-radius: 4px; transition: width 0.4s; }
+    .option-count { font-size: 0.8rem; color: var(--gray-500); min-width: 35px; text-align: right; flex-shrink: 0; }
+    .voter-names { font-size: 0.7rem; color: var(--gray-500); margin-top: 2px; }
+    .closed-badge { font-size: 0.7rem; background: var(--gray-100); color: var(--gray-500); padding: 0.15rem 0.5rem; border-radius: 4px; }
+    .opt-input-row { display: flex; gap: 0.5rem; margin-bottom: 0.4rem; align-items: center; }
+    .mode-tabs { display: flex; gap: 0; margin-bottom: 1.5rem; border: 1px solid var(--gray-200); border-radius: 8px; overflow: hidden; background: white; }
+    .mode-tab { flex: 1; padding: 0.6rem; text-align: center; cursor: pointer; font-size: 0.875rem; font-weight: 500; color: var(--gray-500); border: none; background: transparent; transition: all 0.15s; }
+    .mode-tab.active { background: var(--primary); color: white; }
+  </style>
+</head>
+<body>
+  <div class="header-bar">
+    <h1>⚡ A-boost</h1>
+    <span style="color:var(--gray-500);font-size:0.8rem">投票・アンケート</span>
+    <a href="index.html" style="margin-left:auto;font-size:0.8rem;color:var(--primary)">管理画面へ</a>
+  </div>
+
+  <div class="wrap">
+    <!-- 幹部用：アンケート作成 -->
+    <details class="admin-box">
+      <summary class="admin-toggle">幹部用：アンケートを作成</summary>
+      <div style="margin-top:1rem">
+        <div class="form-group" style="margin-bottom:0.75rem">
+          <label>質問 *</label>
+          <input type="text" id="new-question" placeholder="例：次回の打ち上げはどこがいいですか？">
+        </div>
+        <label style="display:block;font-size:0.8rem;font-weight:500;color:var(--gray-700);margin-bottom:0.4rem">選択肢 *</label>
+        <div id="options-container">
+          <div class="opt-input-row"><input type="text" class="opt-input" placeholder="選択肢 1"></div>
+          <div class="opt-input-row"><input type="text" class="opt-input" placeholder="選択肢 2"></div>
+        </div>
+        <button class="btn btn-outline btn-sm" onclick="addOption()" style="margin-bottom:0.75rem">+ 選択肢を追加</button>
+        <div class="form-group" style="margin-bottom:0.75rem">
+          <label>投票者の名前</label>
+          <select id="new-req-name">
+            <option value="yes">選ぶ（メンバーリストから）</option>
+            <option value="no">不要（匿名投票）</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin-bottom:0.75rem">
+          <label>複数選択</label>
+          <select id="new-multi">
+            <option value="no">1つだけ選べる</option>
+            <option value="yes">複数選べる</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" onclick="createPoll()">アンケートを作成</button>
+      </div>
+    </details>
+
+    <!-- 投票一覧 -->
+    <div id="polls-container"></div>
+    <p class="empty-msg" id="no-polls" style="display:none">アンケートはまだありません</p>
+  </div>
+
+  <!-- 投票モーダル -->
+  <div id="vote-modal" class="modal-overlay" style="display:none">
+    <div class="modal modal-wide">
+      <h3 id="modal-question" style="font-size:1.05rem"></h3>
+      <div id="modal-name-wrap" class="form-group" style="margin-bottom:0.75rem;display:none">
+        <label>名前 *</label>
+        <select id="modal-member"></select>
+      </div>
+      <div id="modal-options"></div>
+      <div class="modal-actions">
+        <button class="btn btn-outline" onclick="closeVoteModal()">キャンセル</button>
+        <button class="btn btn-primary" onclick="submitVote()">投票する</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  <script>
+    firebase.initializeApp({
+      apiKey: "AIzaSyCJqp4e8BMkEbOO3ErWXJiz0zx9J3pxl34",
+      authDomain: "a-boost.firebaseapp.com",
+      projectId: "a-boost",
+      storageBucket: "a-boost.firebasestorage.app",
+      messagingSenderId: "431608615443",
+      appId: "1:431608615443:web:5fb112e76f2d6ef3b7e5e6"
+    });
+    const db = firebase.firestore();
+    const ref = db.collection('app').doc('data');
+
+    let polls = [], members = [], currentPollId = null;
+
+    function esc(s) { return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+    function genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 5); }
+
+    ref.onSnapshot(snap => {
+      if (!snap.exists) return;
+      const d = snap.data();
+      polls   = d.polls || [];
+      members = (d.members || []).sort((a, b) =>
+        (a.grade || '').localeCompare(b.grade || '', 'ja') || (a.name || '').localeCompare(b.name || '', 'ja')
+      );
+      renderPolls();
+    });
+
+    function renderPolls() {
+      const sorted = [...polls].sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
+      const container = document.getElementById('polls-container');
+      document.getElementById('no-polls').style.display = sorted.length ? 'none' : 'block';
+      container.innerHTML = sorted.map(p => {
+        const totalVotes = p.options.reduce((s, _, i) => s + (p.votes?.[i]?.length || 0), 0);
+        return `
+          <div class="poll-card">
+            <div style="display:flex;align-items:flex-start;gap:0.5rem;margin-bottom:0.75rem">
+              <div class="poll-question" style="flex:1">${esc(p.question)}</div>
+              ${p.closed ? '<span class="closed-badge">終了</span>' : ''}
+            </div>
+            ${p.options.map((opt, i) => {
+              const votes = p.votes?.[i] || [];
+              const pct   = totalVotes ? Math.round(votes.length / totalVotes * 100) : 0;
+              return `
+                <div class="option-row">
+                  <div class="option-text">
+                    ${esc(opt)}
+                    ${votes.length ? `<div class="voter-names">${votes.map(v => esc(v)).join('、')}</div>` : ''}
+                  </div>
+                  <div class="option-bar"><div class="option-fill" style="width:${pct}%"></div></div>
+                  <div class="option-count">${votes.length}票</div>
+                </div>`;
+            }).join('')}
+            <div style="margin-top:0.9rem;display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap">
+              <span style="font-size:0.75rem;color:var(--gray-500)">合計 ${totalVotes}票</span>
+              ${!p.closed ? `<button class="btn btn-primary btn-sm" onclick="openVoteModal('${p.id}')">投票する</button>` : ''}
+              ${!p.closed ? `<button class="btn btn-outline btn-sm" onclick="endPoll('${p.id}')">終了する</button>` : ''}
+              <button class="btn btn-danger btn-sm" onclick="deletePoll('${p.id}')">削除</button>
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    function addOption() {
+      const c = document.getElementById('options-container');
+      const cnt = c.querySelectorAll('.opt-input').length + 1;
+      const div = document.createElement('div');
+      div.className = 'opt-input-row';
+      div.innerHTML = `<input type="text" class="opt-input" placeholder="選択肢 ${cnt}" style="flex:1">
+        <button class="btn btn-danger btn-sm" onclick="this.parentElement.remove()">×</button>`;
+      c.appendChild(div);
+    }
+
+    function createPoll() {
+      const q    = document.getElementById('new-question').value.trim();
+      const opts = [...document.querySelectorAll('.opt-input')].map(el => el.value.trim()).filter(Boolean);
+      const reqName = document.getElementById('new-req-name').value === 'yes';
+      const multi   = document.getElementById('new-multi').value === 'yes';
+      if (!q) { alert('質問を入力してください'); return; }
+      if (opts.length < 2) { alert('選択肢を2つ以上入力してください'); return; }
+
+      const poll = {
+        id: genId(), question: q, options: opts, votes: {},
+        requireName: reqName, multi, closed: false,
+        createdAt: new Date().toISOString().slice(0, 10)
+      };
+      ref.set({ polls: [...polls, poll] }, { merge: true });
+      document.getElementById('new-question').value = '';
+      [...document.querySelectorAll('.opt-input')].forEach((el, i) => {
+        el.value = '';
+        if (i >= 2) el.parentElement.remove();
+      });
+    }
+
+    function endPoll(id) {
+      if (!confirm('このアンケートを終了しますか？')) return;
+      const updated = polls.map(p => p.id === id ? { ...p, closed: true } : p);
+      ref.set({ polls: updated }, { merge: true });
+    }
+
+    function deletePoll(id) {
+      if (!confirm('このアンケートを削除しますか？')) return;
+      ref.set({ polls: polls.filter(p => p.id !== id) }, { merge: true });
+    }
+
+    function openVoteModal(id) {
+      currentPollId = id;
+      const p = polls.find(x => x.id === id);
+      if (!p || p.closed) return;
+
+      document.getElementById('modal-question').textContent = p.question;
+
+      const nameWrap = document.getElementById('modal-name-wrap');
+      nameWrap.style.display = p.requireName ? 'block' : 'none';
+      if (p.requireName) {
+        document.getElementById('modal-member').innerHTML =
+          '<option value="">名前を選択...</option>' +
+          members.map(m => `<option value="${m.name}">${m.name}（${m.grade || ''}）</option>`).join('');
+      }
+
+      const inputType = p.multi ? 'checkbox' : 'radio';
+      document.getElementById('modal-options').innerHTML = p.options.map((opt, i) => `
+        <label style="display:flex;align-items:center;gap:0.75rem;padding:0.6rem 0.75rem;border:1px solid var(--gray-200);border-radius:8px;margin-bottom:0.4rem;cursor:pointer">
+          <input type="${inputType}" name="vote-opt" value="${i}"> ${esc(opt)}
+        </label>
+      `).join('');
+
+      document.getElementById('vote-modal').style.display = 'flex';
+    }
+
+    function closeVoteModal() {
+      document.getElementById('vote-modal').style.display = 'none';
+      currentPollId = null;
+    }
+
+    function submitVote() {
+      const p = polls.find(x => x.id === currentPollId);
+      if (!p) return;
+
+      const checked = [...document.querySelectorAll('input[name="vote-opt"]:checked')];
+      if (checked.length === 0) { alert('選択肢を選んでください'); return; }
+
+      let voterName = '匿名';
+      if (p.requireName) {
+        voterName = document.getElementById('modal-member').value;
+        if (!voterName) { alert('名前を選択してください'); return; }
+      }
+
+      const updatedVotes = { ...(p.votes || {}) };
+      checked.forEach(el => {
+        const i = parseInt(el.value);
+        if (!updatedVotes[i]) updatedVotes[i] = [];
+        if (p.requireName && updatedVotes[i].includes(voterName)) return;
+        updatedVotes[i].push(voterName);
+      });
+
+      const updated = polls.map(x => x.id === p.id ? { ...x, votes: updatedVotes } : x);
+      ref.set({ polls: updated }, { merge: true });
+      closeVoteModal();
+    }
+
+    document.getElementById('vote-modal').addEventListener('click', e => {
+      if (e.target === document.getElementById('vote-modal')) closeVoteModal();
+    });
+  </script>
+</body>
+</html>

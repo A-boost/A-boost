@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>出欠集計 | A-boost</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body { background: var(--gray-50); }
+    .wrap { max-width: 900px; margin: 0 auto; padding: 1.5rem; }
+    .header-bar {
+      background: white; border-bottom: 1px solid var(--gray-200);
+      padding: 0.75rem 1.5rem; display: flex; align-items: center;
+      gap: 1rem; position: sticky; top: 0; z-index: 100;
+      box-shadow: var(--shadow); margin-bottom: 1.5rem;
+    }
+    .header-bar h1 { color: var(--primary); font-size: 1.2rem; margin: 0; }
+    .status-yes   { color: var(--success); font-weight: 700; }
+    .status-maybe { color: var(--warning); font-weight: 700; }
+    .status-no    { color: var(--danger);  font-weight: 700; }
+    .stat-row { display: flex; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap; }
+    .stat-box {
+      flex: 1; min-width: 120px; text-align: center; padding: 0.75rem;
+      border-radius: 8px; background: white; border: 1px solid var(--gray-200);
+    }
+    .stat-box .val { font-size: 1.5rem; font-weight: 700; }
+    .stat-box .lbl { font-size: 0.75rem; color: var(--gray-500); margin-top: 0.2rem; }
+    .check-cell { text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="header-bar">
+    <h1>⚡ A-boost</h1>
+    <span style="color:var(--gray-500);font-size:0.8rem">出欠集計</span>
+    <a href="index.html" style="margin-left:auto;font-size:0.8rem;color:var(--primary)">管理画面へ</a>
+  </div>
+
+  <div class="wrap">
+    <div class="card" style="margin-bottom:1rem">
+      <div class="form-group">
+        <label>イベントを選択</label>
+        <select id="sel-event" onchange="render()"><option value="">読み込み中...</option></select>
+      </div>
+    </div>
+
+    <div class="stat-row" id="stats-row" style="display:none">
+      <div class="stat-box"><div class="val status-yes"   id="cnt-yes">0</div><div class="lbl">○ 参加</div></div>
+      <div class="stat-box"><div class="val status-maybe" id="cnt-maybe">0</div><div class="lbl">△ 未定</div></div>
+      <div class="stat-box"><div class="val status-no"    id="cnt-no">0</div><div class="lbl">× 欠席</div></div>
+      <div class="stat-box"><div class="val" id="cnt-none" style="color:var(--gray-500)">0</div><div class="lbl">未回答</div></div>
+    </div>
+
+    <div class="table-container" id="tbl-wrap" style="display:none">
+      <table>
+        <thead>
+          <tr>
+            <th>学年</th>
+            <th>名前</th>
+            <th>出欠</th>
+            <th>コメント</th>
+            <th>回答日</th>
+          </tr>
+        </thead>
+        <tbody id="tbl-body"></tbody>
+      </table>
+    </div>
+    <p class="empty-msg" id="no-event-msg">イベントを選択してください</p>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  <script>
+    firebase.initializeApp({
+      apiKey: "AIzaSyCJqp4e8BMkEbOO3ErWXJiz0zx9J3pxl34",
+      authDomain: "a-boost.firebaseapp.com",
+      projectId: "a-boost",
+      storageBucket: "a-boost.firebasestorage.app",
+      messagingSenderId: "431608615443",
+      appId: "1:431608615443:web:5fb112e76f2d6ef3b7e5e6"
+    });
+    const db = firebase.firestore();
+    const ref = db.collection('app').doc('data');
+
+    let state = { members: [], events: [], attendances: [] };
+
+    ref.onSnapshot(snap => {
+      if (!snap.exists) return;
+      const d = snap.data();
+      state.members     = d.members     || [];
+      state.events      = (d.events || []).sort((a, b) => a.date.localeCompare(b.date));
+      state.attendances = d.attendances || [];
+
+      const sel = document.getElementById('sel-event');
+      const cur = sel.value;
+      sel.innerHTML = '<option value="">イベントを選択...</option>' +
+        state.events.map(e => `<option value="${e.id}">[${fmt(e.date)}] ${e.title}</option>`).join('');
+      sel.value = cur;
+      render();
+    });
+
+    function fmt(s) {
+      const d = new Date(s + 'T00:00:00');
+      return `${d.getMonth() + 1}/${d.getDate()}`;
+    }
+
+    function esc(s) {
+      return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    function statusLabel(s) {
+      if (s === 'yes')   return '<span class="status-yes">○ 参加</span>';
+      if (s === 'maybe') return '<span class="status-maybe">△ 未定</span>';
+      if (s === 'no')    return '<span class="status-no">× 欠席</span>';
+      return '<span style="color:var(--gray-500)">— 未回答</span>';
+    }
+
+    function render() {
+      const eventId = document.getElementById('sel-event').value;
+      const noMsg   = document.getElementById('no-event-msg');
+      const statRow = document.getElementById('stats-row');
+      const tblWrap = document.getElementById('tbl-wrap');
+
+      if (!eventId) {
+        noMsg.style.display = 'block';
+        statRow.style.display = 'none';
+        tblWrap.style.display = 'none';
+        return;
+      }
+      noMsg.style.display = 'none';
+      statRow.style.display = 'flex';
+      tblWrap.style.display = 'block';
+
+      const atMap = {};
+      state.attendances.filter(a => a.eventId === eventId).forEach(a => { atMap[a.memberId] = a; });
+
+      const rows = state.members
+        .sort((a, b) => (a.grade || '').localeCompare(b.grade || '', 'ja') || (a.name || '').localeCompare(b.name || '', 'ja'))
+        .map(m => ({ m, a: atMap[m.id] }));
+
+      let yes = 0, maybe = 0, no = 0, none = 0;
+      rows.forEach(({ a }) => {
+        if (!a) none++;
+        else if (a.status === 'yes')   yes++;
+        else if (a.status === 'maybe') maybe++;
+        else no++;
+      });
+      document.getElementById('cnt-yes').textContent   = yes;
+      document.getElementById('cnt-maybe').textContent = maybe;
+      document.getElementById('cnt-no').textContent    = no;
+      document.getElementById('cnt-none').textContent  = none;
+
+      document.getElementById('tbl-body').innerHTML = rows.map(({ m, a }) => `
+        <tr>
+          <td>${esc(m.grade) || '-'}</td>
+          <td><strong>${esc(m.name)}</strong></td>
+          <td>${statusLabel(a?.status)}</td>
+          <td style="max-width:200px;word-break:break-word">${esc(a?.comment) || '-'}</td>
+          <td>${a?.at || '-'}</td>
+        </tr>
+      `).join('');
+    }
+  </script>
+</body>
+</html>
