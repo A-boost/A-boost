@@ -31,8 +31,8 @@ body {
 
 /* Header */
 .header {
-  background: linear-gradient(90deg, #ef4444, #f97316, #eab308, #22c55e, #3b82f6, #6366f1, #ec4899);
-  border-bottom: none;
+  background: white;
+  border-bottom: 1px solid var(--gray-200);
   padding: 0 1.5rem;
   display: flex;
   align-items: center;
@@ -40,7 +40,7 @@ body {
   position: sticky;
   top: 0;
   z-index: 100;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+  box-shadow: var(--shadow);
 }
 
 .header-left {
@@ -53,13 +53,12 @@ body {
 .header h1 {
   font-size: 1.4rem;
   font-weight: 700;
-  color: white;
-  text-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  color: var(--primary);
 }
 
 .subtitle {
   font-size: 0.75rem;
-  color: rgba(255,255,255,0.85);
+  color: var(--gray-500);
 }
 
 .nav {
@@ -75,19 +74,19 @@ body {
   border-radius: 6px;
   cursor: pointer;
   font-size: 0.875rem;
-  color: rgba(255,255,255,0.9);
+  color: var(--gray-700);
   font-weight: 500;
   transition: all 0.15s;
 }
 
 .nav-btn:hover {
-  background: rgba(255,255,255,0.2);
-  color: white;
+  background: var(--primary-light);
+  color: var(--primary);
 }
 
 .nav-btn.active {
-  background: rgba(255,255,255,0.28);
-  color: white;
+  background: var(--primary-light);
+  color: var(--primary);
   font-weight: 700;
 }
 
