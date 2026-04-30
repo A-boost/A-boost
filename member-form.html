@@ -140,8 +140,17 @@
       </div>
 
       <div class="form-group">
-        <label>学科/専攻</label>
-        <input type="text" id="f-dept" placeholder="経営">
+        <label>学部</label>
+        <select id="f-dept">
+          <option value="">選択してください</option>
+          <option value="仏教学部">仏教学部</option>
+          <option value="文学部">文学部</option>
+          <option value="経済学部">経済学部</option>
+          <option value="経営学部">経営学部</option>
+          <option value="法学部">法学部</option>
+          <option value="医療健康科学部">医療健康科学部</option>
+          <option value="グローバル・メディア・スタディーズ学部">グローバル・メディア・スタディーズ学部</option>
+        </select>
       </div>
 
       <div class="form-group">
@@ -161,7 +170,23 @@
     </div>
   </div>
 
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
   <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCJqp4e8BMkEbOO3ErWXJiz0zx9J3pxl34",
+      authDomain: "a-boost.firebaseapp.com",
+      projectId: "a-boost",
+      storageBucket: "a-boost.firebasestorage.app",
+      messagingSenderId: "431608615443",
+      appId: "1:431608615443:web:5fb112e76f2d6ef3b7e5e6",
+      measurementId: "G-7TFBPDR74Q"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const fsdb = firebase.firestore();
+    const dataRef = fsdb.collection('app').doc('data');
+
     function submitForm() {
       const name = document.getElementById('f-name').value.trim();
       const grade = document.getElementById('f-grade').value;
@@ -172,22 +197,26 @@
         id: Date.now().toString(36) + Math.random().toString(36).slice(2, 5),
         name,
         grade,
-        dept: document.getElementById('f-dept').value.trim(),
+        dept: document.getElementById('f-dept').value,
         email: document.getElementById('f-line').value.trim(),
       };
 
-      const members = JSON.parse(localStorage.getItem('aboost_members') || '[]');
-      members.push(member);
-      localStorage.setItem('aboost_members', JSON.stringify(members));
-
-      document.getElementById('form-section').style.display = 'none';
-      document.getElementById('success-section').style.display = 'block';
+      dataRef.get().then(snap => {
+        const members = snap.exists ? (snap.data().members || []) : [];
+        members.push(member);
+        return dataRef.set({ members }, { merge: true });
+      }).then(() => {
+        document.getElementById('form-section').style.display = 'none';
+        document.getElementById('success-section').style.display = 'block';
+      }).catch(() => {
+        alert('登録に失敗しました。もう一度お試しください。');
+      });
     }
 
     function resetForm() {
       document.getElementById('f-name').value = '';
       document.getElementById('f-grade').value = '';
-      document.getElementById('f-dept').value = '';
+      document.getElementById('f-dept').selectedIndex = 0;
       document.getElementById('f-line').value = '';
       document.getElementById('form-section').style.display = 'block';
       document.getElementById('success-section').style.display = 'none';

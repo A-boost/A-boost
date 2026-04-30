@@ -1,4 +1,4 @@
-// ========== FIREBASE / DATA MANAGEMENT ==========
+// ========== Firebase / データ管理 ==========
 const firebaseConfig = {
   apiKey: "AIzaSyCJqp4e8BMkEbOO3ErWXJiz0zx9J3pxl34",
   authDomain: "a-boost.firebaseapp.com",
@@ -53,7 +53,7 @@ function genId() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
 }
 
-// ========== NAVIGATION ==========
+// ========== ナビゲーション ==========
 document.querySelectorAll('.nav-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
@@ -64,7 +64,7 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
   });
 });
 
-// ========== DASHBOARD ==========
+// ========== ダッシュボード ==========
 function updateDashboard() {
   const members = DB.get('members').filter(m => m.status === 'active');
   const events = DB.get('events');
@@ -86,7 +86,7 @@ function updateDashboard() {
   document.getElementById('stat-balance').textContent = '¥' + balance.toLocaleString();
   document.getElementById('stat-opinions').textContent = opinions.length;
 
-  // Upcoming events
+  // 直近イベント
   const upcoming = events
     .filter(e => new Date(e.date) >= new Date(now.toDateString()))
     .sort((a, b) => new Date(a.date) - new Date(b.date))
@@ -107,7 +107,7 @@ function updateDashboard() {
     `).join('');
   }
 
-  // Recent transactions
+  // 最近の収支
   const recent = [...transactions].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 5);
   const recentEl = document.getElementById('recent-transactions');
   if (recent.length === 0) {
@@ -135,7 +135,7 @@ function saveNotice() {
   showToast('お知らせを保存しました');
 }
 
-// ========== MEMBERS ==========
+// ========== メンバー ==========
 function renderMembers() {
   const query = (document.getElementById('member-search')?.value || '').toLowerCase();
   const members = DB.get('members').filter(m => {
@@ -254,7 +254,7 @@ function deleteMember(id) {
   showToast('メンバーを削除しました');
 }
 
-// ========== SCHEDULE ==========
+// ========== スケジュール ==========
 let currentDate = new Date();
 
 function changeMonth(delta) {
@@ -416,7 +416,7 @@ function deleteEvent(id) {
   showToast('イベントを削除しました');
 }
 
-// ========== ACCOUNTING ==========
+// ========== 会計 ==========
 function renderTransactions() {
   const filter = document.getElementById('transaction-filter')?.value || 'all';
   const transactions = DB.get('transactions')
@@ -512,7 +512,7 @@ function deleteTransaction(id) {
   showToast('収支を削除しました');
 }
 
-// ========== TODO ==========
+// ========== ToDo ==========
 function renderTodos() {
   const todos = DB.get('todos');
   const el = document.getElementById('todo-list');
@@ -555,12 +555,23 @@ function deleteTodo(id) {
   DB.set('todos', DB.get('todos').filter(t => t.id !== id));
 }
 
-// ========== OPINIONS ==========
+// ========== 意見・アイデア ==========
 function renderOpinions() {
   const filter = document.getElementById('opinion-event-filter')?.value || 'all';
   const events = DB.get('events').sort((a, b) => new Date(a.date) - new Date(b.date));
   const eventOptions = '<option value="">なし（全体への意見）</option>' +
+    '<option value="__regular__">普段の活動</option>' +
     events.map(e => `<option value="${e.id}">${formatDate(e.date)} ${esc(e.title)}</option>`).join('');
+
+  // 投稿フォームの名前選択肢をメンバー一覧で更新
+  const nameEl = document.getElementById('opinion-name');
+  if (nameEl) {
+    const currentName = nameEl.value;
+    const members = DB.get('members').sort((a, b) => a.name.localeCompare(b.name, 'ja'));
+    nameEl.innerHTML = '<option value="">メンバーを選択...</option>' +
+      members.map(m => `<option value="${esc(m.name)}">${esc(m.name)}</option>`).join('');
+    nameEl.value = currentName;
+  }
 
   // 投稿フォームのイベント選択肢を更新
   const selectEl = document.getElementById('opinion-event-select');
@@ -571,6 +582,7 @@ function renderOpinions() {
   if (filterEl) {
     const current = filterEl.value;
     filterEl.innerHTML = '<option value="all">すべてのイベント</option>' +
+      '<option value="__regular__">普段の活動</option>' +
       events.map(e => `<option value="${e.id}">${formatDate(e.date)} ${esc(e.title)}</option>`).join('');
     filterEl.value = current;
   }
@@ -585,7 +597,7 @@ function renderOpinions() {
     return;
   }
   el.innerHTML = opinions.map(o => {
-    const ev = o.eventId ? events.find(e => e.id === o.eventId) : null;
+    const ev = o.eventId === '__regular__' ? { title: '普段の活動' } : (o.eventId ? events.find(e => e.id === o.eventId) : null);
     return `
     <div class="event-list-item" style="align-items:flex-start">
       <span class="event-date-badge">${o.createdAt ? o.createdAt.slice(5,10).replace('-','/') : ''}</span>
@@ -601,7 +613,7 @@ function renderOpinions() {
 function postOpinion() {
   const name = document.getElementById('opinion-name').value.trim();
   const text = document.getElementById('opinion-text').value.trim();
-  if (!name) { alert('名前を入力してください'); return; }
+  if (!name) { alert('名前を選択してください'); return; }
   if (!text) { alert('意見・アイデアを入力してください'); return; }
   const eventId = document.getElementById('opinion-event-select').value || null;
   const opinions = DB.get('opinions');
@@ -613,7 +625,7 @@ function postOpinion() {
     createdAt: new Date().toISOString().slice(0, 10),
   });
   DB.set('opinions', opinions);
-  document.getElementById('opinion-name').value = '';
+  document.getElementById('opinion-name').selectedIndex = 0;
   document.getElementById('opinion-text').value = '';
   document.getElementById('opinion-event-select').value = '';
   updateDashboard();
@@ -628,7 +640,7 @@ function deleteOpinion(id) {
   showToast('削除しました');
 }
 
-// ========== CSV EXPORT ==========
+// ========== CSVエクスポート ==========
 function exportCSV(type) {
   let rows, filename;
   if (type === 'members') {
@@ -651,7 +663,7 @@ function exportCSV(type) {
   URL.revokeObjectURL(url);
 }
 
-// ========== MODAL ==========
+// ========== モーダル ==========
 function openModal(id) {
   document.getElementById(id).style.display = 'flex';
   if (id === 'event-modal') populateCoordinatorSelect();
@@ -681,14 +693,14 @@ function closeModal(id) {
   }
 }
 
-// Close modal on overlay click
+// オーバーレイクリックでモーダルを閉じる
 document.querySelectorAll('.modal-overlay').forEach(overlay => {
   overlay.addEventListener('click', e => {
     if (e.target === overlay) closeModal(overlay.id);
   });
 });
 
-// ========== TOAST ==========
+// ========== トースト通知 ==========
 function showToast(msg) {
   const el = document.createElement('div');
   el.style.cssText = 'position:fixed;bottom:1.5rem;right:1.5rem;background:#1f2937;color:white;padding:0.75rem 1.25rem;border-radius:8px;font-size:0.875rem;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,0.15);animation:fadeIn 0.2s';
@@ -697,7 +709,7 @@ function showToast(msg) {
   setTimeout(() => el.remove(), 2500);
 }
 
-// ========== UTILS ==========
+// ========== ユーティリティ ==========
 function esc(str) {
   return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
@@ -708,7 +720,7 @@ function formatDate(str) {
   return `${d.getMonth()+1}/${d.getDate()}`;
 }
 
-// ========== INIT ==========
+// ========== 初期化 ==========
 document.addEventListener('DOMContentLoaded', () => {
   const today = new Date();
   document.getElementById('e-date').value = today.toISOString().slice(0, 10);

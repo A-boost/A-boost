@@ -121,7 +121,9 @@
 
       <div class="form-group">
         <label>名前<span class="required">*</span></label>
-        <input type="text" id="f-name" placeholder="山田 太郎">
+        <select id="f-name">
+          <option value="">メンバーを選択...</option>
+        </select>
       </div>
 
       <div class="form-group">
@@ -165,11 +167,26 @@
     const fsdb = firebase.firestore();
     const dataRef = fsdb.collection('app').doc('data');
 
-    // Load events into selector
+    // Load members and events into selectors
     dataRef.get().then(snap => {
       if (!snap.exists) return;
-      const events = (snap.data().events || []).sort((a, b) => new Date(a.date) - new Date(b.date));
+      const data = snap.data();
+
+      const members = (data.members || []).sort((a, b) => a.name.localeCompare(b.name, 'ja'));
+      const nameSel = document.getElementById('f-name');
+      members.forEach(m => {
+        const opt = document.createElement('option');
+        opt.value = m.name;
+        opt.textContent = m.name;
+        nameSel.appendChild(opt);
+      });
+
+      const events = (data.events || []).sort((a, b) => new Date(a.date) - new Date(b.date));
       const sel = document.getElementById('f-event');
+      const regularOpt = document.createElement('option');
+      regularOpt.value = '__regular__';
+      regularOpt.textContent = '普段の活動';
+      sel.appendChild(regularOpt);
       events.forEach(e => {
         const opt = document.createElement('option');
         opt.value = e.id;
@@ -182,7 +199,7 @@
     function submitOpinion() {
       const name = document.getElementById('f-name').value.trim();
       const text = document.getElementById('f-text').value.trim();
-      if (!name) { alert('名前を入力してください'); return; }
+      if (!name) { alert('名前を選択してください'); return; }
       if (!text) { alert('意見・アイデアを入力してください'); return; }
 
       const opinion = {
@@ -206,7 +223,7 @@
     }
 
     function resetForm() {
-      document.getElementById('f-name').value = '';
+      document.getElementById('f-name').selectedIndex = 0;
       document.getElementById('f-event').value = '';
       document.getElementById('f-text').value = '';
       document.getElementById('form-section').style.display = 'block';
