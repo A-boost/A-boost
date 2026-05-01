@@ -27,22 +27,6 @@
       <section id="page-dashboard" class="page active">
         <h2>ホーム</h2>
 
-        <!-- ToDoリスト -->
-        <div class="card" style="margin-bottom:1.5rem">
-          <h3>ToDoリスト</h3>
-          <div style="display:flex;gap:0.5rem;margin-bottom:0.5rem">
-            <input type="text" id="todo-input" placeholder="タスクを入力..." style="flex:1" onkeydown="if(event.key==='Enter')addTodo()">
-            <button class="btn btn-primary" onclick="addTodo()">追加</button>
-          </div>
-          <div style="display:flex;gap:0.75rem;margin-bottom:0.75rem;flex-wrap:wrap">
-            <label style="display:flex;align-items:center;gap:0.3rem;font-size:0.85rem;cursor:pointer"><input type="checkbox" class="todo-person-cb" value="いっしん"> いっしん</label>
-            <label style="display:flex;align-items:center;gap:0.3rem;font-size:0.85rem;cursor:pointer"><input type="checkbox" class="todo-person-cb" value="さき"> さき</label>
-            <label style="display:flex;align-items:center;gap:0.3rem;font-size:0.85rem;cursor:pointer"><input type="checkbox" class="todo-person-cb" value="きょーか"> きょーか</label>
-            <label style="display:flex;align-items:center;gap:0.3rem;font-size:0.85rem;cursor:pointer"><input type="checkbox" class="todo-person-cb" value="とうた"> とうた</label>
-          </div>
-          <div id="todo-list"></div>
-        </div>
-
         <div class="stats-grid">
           <div class="stat-card">
             <div class="stat-icon">👥</div>
@@ -84,6 +68,22 @@
             <textarea id="notice-board" placeholder="サークル全体へのお知らせやメモを入力..." rows="6"></textarea>
             <button class="btn btn-primary" onclick="saveNotice()">保存</button>
           </div>
+        </div>
+
+        <!-- ToDoリスト -->
+        <div class="card" style="margin-top:1.5rem">
+          <h3>ToDoリスト</h3>
+          <div style="display:flex;gap:0.5rem;margin-bottom:0.5rem">
+            <input type="text" id="todo-input" placeholder="タスクを入力..." style="flex:1" onkeydown="if(event.key==='Enter')addTodo()">
+            <button class="btn btn-primary" onclick="addTodo()">追加</button>
+          </div>
+          <div style="display:flex;gap:0.75rem;margin-bottom:0.75rem;flex-wrap:wrap">
+            <label style="display:flex;align-items:center;gap:0.3rem;font-size:0.85rem;cursor:pointer"><input type="checkbox" class="todo-person-cb" value="いっしん"> いっしん</label>
+            <label style="display:flex;align-items:center;gap:0.3rem;font-size:0.85rem;cursor:pointer"><input type="checkbox" class="todo-person-cb" value="さき"> さき</label>
+            <label style="display:flex;align-items:center;gap:0.3rem;font-size:0.85rem;cursor:pointer"><input type="checkbox" class="todo-person-cb" value="きょーか"> きょーか</label>
+            <label style="display:flex;align-items:center;gap:0.3rem;font-size:0.85rem;cursor:pointer"><input type="checkbox" class="todo-person-cb" value="とうた"> とうた</label>
+          </div>
+          <div id="todo-list"></div>
         </div>
       </section>
 
