@@ -66,7 +66,7 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
 
 // ========== ダッシュボード ==========
 function updateDashboard() {
-  const members = DB.get('members').filter(m => m.status === 'active');
+  const members = DB.get('members');
   const events = DB.get('events');
   const transactions = DB.get('transactions');
   const opinions = DB.get('opinions');
