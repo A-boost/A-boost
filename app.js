@@ -35,6 +35,7 @@ dataRef.onSnapshot(snap => {
   renderCalendar();
   renderTransactions();
   renderOpinions();
+  migrateHistory();
   renderHistory();
 });
 
@@ -67,6 +68,28 @@ function addHistory(category, action, detail) {
   });
   if (history.length > 200) history.splice(200);
   DB.set('history', history);
+}
+
+function migrateHistory() {
+  if (DB.get('history').length > 0) return;
+  const entries = [];
+
+  DB.get('members').forEach(m => {
+    entries.push({ id: genId(), timestamp: '2000-01-01T00:00:00.000Z', category: 'メンバー', action: '追加（既存）', detail: `${m.name}（${m.grade || '-'}・${m.dept || '-'}）` });
+  });
+  DB.get('events').forEach(e => {
+    entries.push({ id: genId(), timestamp: e.date ? e.date + 'T00:00:00.000Z' : '2000-01-01T00:00:00.000Z', category: 'イベント', action: '追加（既存）', detail: `${e.title}（${e.date}）` });
+  });
+  DB.get('transactions').forEach(t => {
+    entries.push({ id: genId(), timestamp: t.date ? t.date + 'T00:00:00.000Z' : '2000-01-01T00:00:00.000Z', category: '会計', action: '追加（既存）', detail: `${t.desc}（${t.type === 'income' ? '+' : '-'}¥${Number(t.amount).toLocaleString()}）` });
+  });
+  DB.get('opinions').forEach(o => {
+    entries.push({ id: genId(), timestamp: o.createdAt ? o.createdAt + 'T00:00:00.000Z' : '2000-01-01T00:00:00.000Z', category: '意見', action: '追加（既存）', detail: `${o.name}が投稿` });
+  });
+
+  entries.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+  DB.set('history', entries);
+  renderHistory();
 }
 
 function renderHistory() {
