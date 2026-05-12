@@ -13,7 +13,7 @@ firebase.initializeApp(firebaseConfig);
 const fsdb = firebase.firestore();
 const dataRef = fsdb.collection('app').doc('data');
 
-const STATE = { members: [], events: [], transactions: [], opinions: [], todos: [], notice: '' };
+const STATE = { members: [], events: [], transactions: [], opinions: [], todos: [], notice: '', history: [] };
 
 dataRef.get().then(snap => {
   if (!snap.exists) dataRef.set(STATE);
@@ -28,12 +28,14 @@ dataRef.onSnapshot(snap => {
   STATE.opinions = data.opinions || [];
   STATE.todos = data.todos || [];
   STATE.notice = data.notice || '';
+  STATE.history = data.history || [];
   updateDashboard();
   renderTodos();
   renderMembers();
   renderCalendar();
   renderTransactions();
   renderOpinions();
+  renderHistory();
 });
 
 const DB = {
@@ -51,6 +53,46 @@ const DB = {
 
 function genId() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+}
+
+// ========== 履歴 ==========
+function addHistory(category, action, detail) {
+  const history = DB.get('history');
+  history.unshift({
+    id: genId(),
+    timestamp: new Date().toISOString(),
+    category,
+    action,
+    detail,
+  });
+  if (history.length > 200) history.splice(200);
+  DB.set('history', history);
+}
+
+function renderHistory() {
+  const el = document.getElementById('history-list');
+  if (!el) return;
+  const history = DB.get('history');
+  if (history.length === 0) {
+    el.innerHTML = '<p class="empty-msg">履歴はありません</p>';
+    return;
+  }
+  const categoryColors = {
+    'メンバー': '#6366f1', 'イベント': '#0ea5e9', '会計': '#10b981',
+    '意見': '#f59e0b', 'ToDo': '#ec4899',
+  };
+  el.innerHTML = history.map(h => {
+    const dt = new Date(h.timestamp);
+    const dateStr = `${dt.getMonth()+1}/${dt.getDate()} ${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}`;
+    const color = categoryColors[h.category] || '#6b7280';
+    return `
+    <div class="event-list-item">
+      <span class="event-date-badge">${dateStr}</span>
+      <span style="font-size:0.75rem;padding:0.15rem 0.5rem;border-radius:4px;background:${color}22;color:${color};white-space:nowrap">${esc(h.category)}</span>
+      <span style="font-size:0.8rem;color:var(--gray-500);white-space:nowrap">${esc(h.action)}</span>
+      <div style="flex:1;font-size:0.875rem">${esc(h.detail)}</div>
+    </div>`;
+  }).join('');
 }
 
 // ========== ナビゲーション ==========
@@ -186,6 +228,7 @@ function saveInlineMember() {
     members.push(member);
   }
   DB.set('members', members);
+  addHistory('メンバー', id ? '編集' : '追加', `${member.name}（${member.grade}・${member.dept || '-'}）`);
   cancelInlineEdit();
   renderMembers();
   updateDashboard();
@@ -248,7 +291,9 @@ function editMember(id) {
 
 function deleteMember(id) {
   if (!confirm('このメンバーを削除しますか？')) return;
+  const m = DB.get('members').find(m => m.id === id);
   DB.set('members', DB.get('members').filter(m => m.id !== id));
+  if (m) addHistory('メンバー', '削除', `${m.name}（${m.grade}・${m.dept || '-'}）`);
   renderMembers();
   updateDashboard();
   showToast('メンバーを削除しました');
@@ -383,6 +428,7 @@ function saveEvent() {
     events.push(event);
   }
   DB.set('events', events);
+  addHistory('イベント', id ? '編集' : '追加', `${event.title}（${event.date}）`);
   closeModal('event-modal');
   renderCalendar();
   updateDashboard();
@@ -410,7 +456,9 @@ function editEvent(id) {
 
 function deleteEvent(id) {
   if (!confirm('このイベントを削除しますか？')) return;
+  const e = DB.get('events').find(e => e.id === id);
   DB.set('events', DB.get('events').filter(e => e.id !== id));
+  if (e) addHistory('イベント', '削除', `${e.title}（${e.date}）`);
   renderCalendar();
   updateDashboard();
   showToast('イベントを削除しました');
@@ -481,6 +529,7 @@ function saveTransaction() {
     transactions.push(t);
   }
   DB.set('transactions', transactions);
+  addHistory('会計', id ? '編集' : '追加', `${t.desc}（${t.type === 'income' ? '+' : '-'}¥${Number(t.amount).toLocaleString()}）`);
   closeModal('transaction-modal');
   renderTransactions();
   updateDashboard();
@@ -506,7 +555,9 @@ function editTransaction(id) {
 
 function deleteTransaction(id) {
   if (!confirm('この収支記録を削除しますか？')) return;
+  const t = DB.get('transactions').find(t => t.id === id);
   DB.set('transactions', DB.get('transactions').filter(t => t.id !== id));
+  if (t) addHistory('会計', '削除', `${t.desc}（${t.type === 'income' ? '+' : '-'}¥${Number(t.amount).toLocaleString()}）`);
   renderTransactions();
   updateDashboard();
   showToast('収支を削除しました');
@@ -540,6 +591,7 @@ function addTodo() {
   const todos = DB.get('todos');
   todos.push({ id: genId(), text, person: persons.join('・'), done: false });
   DB.set('todos', todos);
+  addHistory('ToDo', '追加', `${text}${persons.length ? '（' + persons.join('・') + '）' : ''}`);
   input.value = '';
   document.querySelectorAll('.todo-person-cb').forEach(cb => cb.checked = false);
 }
@@ -552,7 +604,9 @@ function toggleTodo(id) {
 }
 
 function deleteTodo(id) {
+  const t = DB.get('todos').find(t => t.id === id);
   DB.set('todos', DB.get('todos').filter(t => t.id !== id));
+  if (t) addHistory('ToDo', '削除', t.text);
 }
 
 // ========== 意見・アイデア ==========
@@ -625,6 +679,7 @@ function postOpinion() {
     createdAt: new Date().toISOString().slice(0, 10),
   });
   DB.set('opinions', opinions);
+  addHistory('意見', '追加', `${name}が投稿`);
   document.getElementById('opinion-name').selectedIndex = 0;
   document.getElementById('opinion-text').value = '';
   document.getElementById('opinion-event-select').value = '';
@@ -634,7 +689,9 @@ function postOpinion() {
 
 function deleteOpinion(id) {
   if (!confirm('この意見を削除しますか？')) return;
+  const o = DB.get('opinions').find(o => o.id === id);
   DB.set('opinions', DB.get('opinions').filter(o => o.id !== id));
+  if (o) addHistory('意見', '削除', `${o.name}の投稿を削除`);
   renderOpinions();
   updateDashboard();
   showToast('削除しました');
