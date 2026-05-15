@@ -414,13 +414,8 @@
       </div>
 
       <div class="q-block">
-        <div class="q-label"><span class="q-num">Q13</span>週あたりの運営にかかる時間はどのくらいですか？<span class="req">*</span></div>
-        <div class="radio-group" id="q13">
-          <label class="radio-option"><input type="radio" name="q13" value="5時間以上"> 5時間以上</label>
-          <label class="radio-option"><input type="radio" name="q13" value="2〜5時間程度"> 2〜5時間程度</label>
-          <label class="radio-option"><input type="radio" name="q13" value="1〜2時間程度"> 1〜2時間程度</label>
-          <label class="radio-option"><input type="radio" name="q13" value="ほぼかからない"> ほぼかからない</label>
-        </div>
+        <div class="q-label"><span class="q-num">Q13</span>週あたりの運営にかかる時間はどのくらいですか？</div>
+        <textarea id="q13" placeholder="例：週3時間くらいです…など"></textarea>
       </div>
     </div>
 
@@ -555,7 +550,7 @@
     // ── バリデーション（各ステップ必須チェック） ──
     const stepRequired = {
       1: ['q1','q2','q3','q4','q5'],
-      2: ['q_member','q6','q7','q8','q9','q10','q11','q13'],
+      2: ['q_member','q6','q7','q8','q9','q10','q11'],
       3: ['q14','q15','q16','q17','q18'],
       4: []
     };
@@ -633,7 +628,7 @@
         q9:  getVal('q9'),
         q10: getVal('q10'),
         q11: getVal('q11'),
-        q13: getVal('q13'),
+        q13: document.getElementById('q13').value.trim(),
         q14: getVal('q14'),
         q15: getVal('q15'),
         q16: getVal('q16'),
