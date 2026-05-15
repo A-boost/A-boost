@@ -141,6 +141,7 @@
         surveys = snap.exists ? (snap.data().surveys || []) : [];
         surveys.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
         render();
+        if (surveys.length > 0) exportCSV();
       }).catch(() => {
         document.getElementById('count').textContent = '読み込みに失敗しました';
       });
