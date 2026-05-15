@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>サークル運営アンケート</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', 'Hiragino Sans', 'Meiryo', sans-serif;
+      background: #f3f4f6;
+      min-height: 100vh;
+      padding: 1.5rem 1rem 3rem;
+    }
+
+    .container {
+      background: white;
+      border-radius: 16px;
+      width: 100%;
+      max-width: 620px;
+      margin: 0 auto;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+
+    /* ── ヘッダー ── */
+    .form-header {
+      background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+      padding: 2rem 2rem 1.5rem;
+      color: white;
+    }
+    .form-header h1 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+    .form-header p {
+      font-size: 0.85rem;
+      opacity: 0.85;
+      line-height: 1.6;
+    }
+    .badge {
+      display: inline-block;
+      background: rgba(255,255,255,0.2);
+      border-radius: 20px;
+      padding: 0.25rem 0.75rem;
+      font-size: 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+
+    /* ── プログレスバー ── */
+    .progress-wrap {
+      background: #e5e7eb;
+      height: 4px;
+    }
+    .progress-bar {
+      height: 4px;
+      background: linear-gradient(90deg, #4f46e5, #7c3aed);
+      transition: width 0.4s ease;
+      width: 0%;
+    }
+
+    /* ── セクション ── */
+    .section {
+      display: none;
+      padding: 1.75rem 2rem;
+    }
+    .section.active { display: block; }
+
+    .section-label {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #4f46e5;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 1.25rem;
+    }
+    .section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: #e5e7eb;
+    }
+
+    /* ── 設問 ── */
+    .q-block {
+      margin-bottom: 1.5rem;
+    }
+    .q-label {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #1f2937;
+      margin-bottom: 0.75rem;
+      line-height: 1.5;
+    }
+    .q-label .req {
+      color: #ef4444;
+      margin-left: 3px;
+      font-size: 0.8rem;
+    }
+    .q-num {
+      display: inline-block;
+      background: #4f46e5;
+      color: white;
+      font-size: 0.7rem;
+      font-weight: 700;
+      border-radius: 4px;
+      padding: 1px 6px;
+      margin-right: 6px;
+      vertical-align: middle;
+    }
+
+    /* ── ラジオボタン ── */
+    .radio-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .radio-option {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.65rem 0.9rem;
+      border: 1.5px solid #e5e7eb;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-size: 0.9rem;
+      color: #374151;
+    }
+    .radio-option:hover {
+      border-color: #a5b4fc;
+      background: #f5f3ff;
+    }
+    .radio-option input[type="radio"] {
+      accent-color: #4f46e5;
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+    }
+    .radio-option.selected {
+      border-color: #4f46e5;
+      background: #eef2ff;
+      color: #3730a3;
+      font-weight: 600;
+    }
+
+    /* ── テキストエリア ── */
+    textarea {
+      width: 100%;
+      padding: 0.75rem 0.9rem;
+      border: 1.5px solid #e5e7eb;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      color: #1f2937;
+      resize: vertical;
+      min-height: 100px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    textarea:focus {
+      border-color: #4f46e5;
+      box-shadow: 0 0 0 3px rgba(79,70,229,0.1);
+    }
+    textarea::placeholder { color: #9ca3af; }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 0.65rem 0.9rem;
+      border: 1.5px solid #e5e7eb;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      color: #1f2937;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    input[type="text"]:focus {
+      border-color: #4f46e5;
+      box-shadow: 0 0 0 3px rgba(79,70,229,0.1);
+    }
+
+    /* ── ナビゲーション ── */
+    .nav-buttons {
+      display: flex;
+      gap: 0.75rem;
+      padding: 1.25rem 2rem 1.75rem;
+      border-top: 1px solid #f3f4f6;
+    }
+    .btn-back {
+      flex: 0 0 auto;
+      padding: 0.7rem 1.25rem;
+      background: #f9fafb;
+      color: #374151;
+      border: 1.5px solid #e5e7eb;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-back:hover { background: #f3f4f6; }
+    .btn-next {
+      flex: 1;
+      padding: 0.75rem;
+      background: linear-gradient(135deg, #4f46e5, #7c3aed);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .btn-next:hover { opacity: 0.9; }
+    .btn-next:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* ── ステップ表示 ── */
+    .step-indicator {
+      font-size: 0.8rem;
+      color: #9ca3af;
+      text-align: center;
+      padding: 0.75rem 2rem 0;
+    }
+
+    /* ── 完了画面 ── */
+    .success-section {
+      display: none;
+      text-align: center;
+      padding: 3rem 2rem;
+    }
+    .success-icon {
+      font-size: 3.5rem;
+      margin-bottom: 1rem;
+    }
+    .success-section h2 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #1f2937;
+      margin-bottom: 0.5rem;
+    }
+    .success-section p {
+      color: #6b7280;
+      font-size: 0.9rem;
+      line-height: 1.7;
+    }
+    .success-section .credit {
+      margin-top: 2rem;
+      font-size: 0.8rem;
+      color: #9ca3af;
+    }
+
+    /* ── エラー ── */
+    .error-msg {
+      display: none;
+      color: #ef4444;
+      font-size: 0.8rem;
+      margin-top: 0.4rem;
+    }
+
+    @media (max-width: 480px) {
+      .section { padding: 1.5rem 1.25rem; }
+      .nav-buttons { padding: 1rem 1.25rem 1.5rem; }
+      .form-header { padding: 1.75rem 1.25rem 1.25rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="form-header">
+      <div class="badge">📋 サークル運営調査 2026</div>
+      <h1>サークル運営の困りごと<br>アンケート</h1>
+      <p>全国のサークル・部活の運営者の皆さんへ。<br>
+        日頃の「大変なこと・困りごと」を教えてください。<br>
+        いただいた声を運営ツール開発に活かします。</p>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-bar" id="progress-bar"></div>
+    </div>
+
+    <p class="step-indicator" id="step-indicator">STEP 1 / 4</p>
+
+    <!-- ══ STEP 1: 基本情報 ══ -->
+    <div class="section active" data-step="1">
+      <div class="section-label">STEP 1　あなたのサークルについて</div>
+
+      <div class="q-block">
+        <div class="q-label"><span class="q-num">Q1</span>大学・学校の種類を教えてください<span class="req">*</span></div>
+        <div class="radio-group" id="q1">
+          <label class="radio-option"><input type="radio" name="q1" value="国公立大学"> 国公立大学</label>
+          <label class="radio-option"><input type="radio" name="q1" value="私立大学"> 私立大学</label>
+          <label class="radio-option"><input type="radio" name="q1" value="専門学校・短期大学"> 専門学校・短期大学</label>
+          <label class="radio-option"><input type="radio" name="q1" value="その他"> その他</label>
+        </div>
+      </div>
+
+      <div class="q-block">
+        <div class="q-label"><span class="q-num">Q2</span>サークル・部活の種類を教えてください<span class="req">*</span></div>
+        <div class="radio-group" id="q2">
+          <label class="radio-option"><input type="radio" name="q2" value="文化系（音楽・演劇・アートなど）"> 文化系（音楽・演劇・アートなど）</label>
+          <label class="radio-option"><input type="radio" name="q2" value="スポーツ系"> スポーツ系</label>
+          <label class="radio-option"><input type="radio" name="q2" value="学術・研究・勉強系"> 学術・研究・勉強系</label>
+          <label class="radio-option"><input type="radio" name="q2" value="その他"> その他</label>
+        </div>
+      </div>
+
+      <div class="q-block">
+        <div class="q-label"><span class="q-num">Q3</span>サークルの規模（会員数）を教えてください<span class="req">*</span></div>
+        <div class="radio-group" id="q3">
+          <label class="radio-option"><input type="radio" name="q3" value="〜10名"> 〜10名</label>
+          <label class="radio-option"><input type="radio" name="q3" value="11〜30名"> 11〜30名</label>
+          <label class="radio-option"><input type="radio" name="q3" value="31〜80名"> 31〜80名</label>
+          <label class="radio-option"><input type="radio" name="q3" value="81名以上"> 81名以上</label>
+        </div>
+      </div>
+
+      <div class="q-block">
+        <div class="q-label"><span class="q-num">Q4</span>あなたの役職を教えてください<span class="req">*</span></div>
+        <div class="radio-group" id="q4">
+          <label class="radio-option"><input type="radio" name="q4" value="代表・会長"> 代表・会長</label>
+          <label class="radio-option"><input type="radio" name="q4" value="副代表・書記・会計など"> 副代表・書記・会計など</label>
+          <label class="radio-option"><input type="radio" name="q4" value="一般幹部"> 一般幹部</label>
+          <label class="radio-option"><input type="radio" name="q4" value="その他"> その他</label>
+        </div>
+      </div>
+
+      <div class="q-block">
+        <div class="q-label"><span class="q-num">Q5</span>運営経験は何年目ですか？<span class="req">*</span></div>
+        <div class="radio-group" id="q5">
+          <label class="radio-option"><input type="radio" name="q5" value="1年目"> 1年目（初めて）</label>
+          <label class="radio-option"><input type="radio" name="q5" value="2年目"> 2年目</label>
+          <label class="radio-option"><input type="radio" name="q5" value="3年目"> 3年目</label>
+          <label class="radio-option"><input type="radio" name="q5" value="4年目以上"> 4年目以上</label>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ STEP 2: 運営課題 ══ -->
+    <div class="section" data-step="2">
+      <div class="section-label">STEP 2　運営の各場面での課題</div>
+
+      <div class="q-block">
+        <div class="q-label"><span class="q-num">Q6</span>会員管理（名簿・連絡先）に満足していますか？<span class="req">*</span></div>
+        <div class="radio-group" id="q6">
+          <label class="radio-option"><input type="radio" name="q6" value="とても満足"> とても満足している</label>
+          <label class="radio-option"><input type="radio" name="q6" value="ある程度満足"> ある程度満足している</label>
+          <label class="radio-option"><input type="radio" name="q6" value="あまり満足していない"> あまり満足していない</label>
+          <label class="radio-option"><input type="radio" name="q6" value="まったく満足していない"> まったく満足していない</label>
+        </div>
+      </div>
+
+      <div class="q-block">
+        <div class="q-label"><span class="q-num">Q7</span>会員管理で最も困っていることは何ですか？<span class="req">*</span></div>
+        <div class="radio-group" id="q7">
+          <label class="radio-option"><input type="radio" name="q7" value="情報の更新・把握が大変"> 情報の更新・把握が大変</label>
+          <label class="radio-option"><input type="radio" name="q7" value="連絡が届かないメンバーがいる"> 連絡が届かないメンバーがいる</label>
+          <label class="radio-option"><input type="radio" name="q7" value="参加率・出席管理が難しい"> 参加率・出席管理が難しい</label>
+          <label class="radio-option"><input type="radio" name="q7" value="特に困っていない"> 特に困っていない</label>
+        </div>
+      </div>
+
+      <div class="q-block">
+        <div class="q-label"><span class="q-num">Q8</span>イベント・スケジュール管理はどうしていますか？<span class="req">*</span></div>
+        <div class="radio-group" id="q8">
+          <label class="radio-option"><input type="radio" name="q8" value="Googleカレンダー等デジタルツール"> Googleカレンダー等のデジタルツール</label>
+          <label class="radio-option"><input type="radio" name="q8" value="LINE・SNSで共有"> LINEやSNSで共有</label>
+          <label class="radio-option"><input type="radio" name="q8" value="紙・ホワイトボード"> 紙・ホワイトボード</label>
+          <label class="radio-option"><input type="radio" name="q8" value="特に管理していない"> 特に管理していない</label>
+        </div>
+      </div>
+
+      <div class="q-block">
+        <div class="q-label"><span class="q-num">Q9</span>スケジュール管理で困ることは？<span class="req">*</span></div>
+        <div class="radio-group" id="q9">
+          <label class="radio-option"><input type="radio" name="q9" value="参加確認・出欠管理が面倒"> 参加確認・出欠管理が面倒</label>
+          <label class="radio-option"><input type="radio" name="q9" value="情報共有の漏れが起きる"> 情報共有の漏れが起きる</label>
+          <label class="radio-option"><input type="radio" name="q9" value="日程調整が複雑で時間がかかる"> 日程調整が複雑で時間がかかる</label>
+          <label class="radio-option"><input type="radio" name="q9" value="特に困っていない"> 特に困っていない</label>
+        </div>
+      </div>
+
+      <div class="q-block">
+        <div class="q-label"><span class="q-num">Q10</span>会費・会計の管理はどうしていますか？<span class="req">*</span></div>
+        <div class="radio-group" id="q10">
+          <label class="radio-option"><input type="radio" name="q10" value="専用アプリ・ツール"> 専用アプリ・ツール</label>
+          <label class="radio-option"><input type="radio" name="q10" value="ExcelやGoogleスプレッドシート"> ExcelやGoogleスプレッドシート</label>
+          <label class="radio-option"><input type="radio" name="q10" value="手書き帳簿"> 手書き帳簿</label>
+          <label class="radio-option"><input type="radio" name="q10" value="担当者の記憶に頼っている"> 担当者の記憶に頼っている</label>
+        </div>
+      </div>
+
+      <div class="q-block">
+        <div class="q-label"><span class="q-num">Q11</span>会計管理で一番大変なことは？<span class="req">*</span></div>
+        <div class="radio-group" id="q11">
+          <label class="radio-option"><input type="radio" name="q11" value="会費の回収・管理"> 会費の回収・管理</label>
+          <label class="radio-option"><input type="radio" name="q11" value="収支の透明性確保"> 収支の透明性確保</label>
+          <label class="radio-option"><input type="radio" name="q11" value="予算計画・残高把握"> 予算計画・残高把握</label>
+          <label class="radio-option"><input type="radio" name="q11" value="引き継ぎが難しい"> 引き継ぎが難しい</label>
+        </div>
+      </div>
+
+      <div class="q-block">
+        <div class="q-label"><span class="q-num">Q12</span>幹部・役職の引き継ぎはうまくいっていますか？<span class="req">*</span></div>
+        <div class="radio-group" id="q12">
+          <label class="radio-option"><input type="radio" name="q12" value="うまくいっている"> うまくいっている</label>
+          <label class="radio-option"><input type="radio" name="q12" value="なんとかできている"> なんとかできている</label>
+          <label class="radio-option"><input type="radio" name="q12" value="毎年苦労している"> 毎年苦労している</label>
+          <label class="radio-option"><input type="radio" name="q12" value="引き継ぎの仕組みがない"> 引き継ぎの仕組みがない</label>
+        </div>
+      </div>
+
+      <div class="q-block">
+        <div class="q-label"><span class="q-num">Q13</span>週あたりの運営にかかる時間はどのくらいですか？<span class="req">*</span></div>
+        <div class="radio-group" id="q13">
+          <label class="radio-option"><input type="radio" name="q13" value="5時間以上"> 5時間以上</label>
+          <label class="radio-option"><input type="radio" name="q13" value="2〜5時間程度"> 2〜5時間程度</label>
+          <label class="radio-option"><input type="radio" name="q13" value="1〜2時間程度"> 1〜2時間程度</label>
+          <label class="radio-option"><input type="radio" name="q13" value="ほぼかからない"> ほぼかからない</label>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ STEP 3: ツール・ニーズ ══ -->
+    <div class="section" data-step="3">
+      <div class="section-label">STEP 3　ツール・改善ニーズ</div>
+
+      <div class="q-block">
+        <div class="q-label"><span class="q-num">Q14</span>運営で「一番しんどい」と感じるのはどの場面ですか？<span class="req">*</span></div>
+        <div class="radio-group" id="q14">
+          <label class="radio-option"><input type="radio" name="q14" value="大人数のスケジュール調整"> 大人数のスケジュール調整</label>
+          <label class="radio-option"><input type="radio" name="q14" value="お金・会計管理"> お金・会計管理</label>
+          <label class="radio-option"><input type="radio" name="q14" value="メンバーへの連絡・周知"> メンバーへの連絡・周知</label>
+          <label class="radio-option"><input type="radio" name="q14" value="引き継ぎ・ドキュメント整理"> 引き継ぎ・ドキュメント整理</label>
+        </div>
+      </div>
+
+      <div class="q-block">
+        <div class="q-label"><span class="q-num">Q15</span>ツールがあれば解決できると思う課題は何ですか？<span class="req">*</span></div>
+        <div class="radio-group" id="q15">
+          <label class="radio-option"><input type="radio" name="q15" value="会員名簿・情報の一元管理"> 会員名簿・情報の一元管理</label>
+          <label class="radio-option"><input type="radio" name="q15" value="会計・費用の見える化"> 会計・費用の見える化</label>
+          <label class="radio-option"><input type="radio" name="q15" value="イベント調整・出欠確認"> イベント調整・出欠確認</label>
+          <label class="radio-option"><input type="radio" name="q15" value="意見・アイデアの集約"> 意見・アイデアの集約</label>
+        </div>
+      </div>
+
+      <div class="q-block">
+        <div class="q-label"><span class="q-num">Q16</span>現在メインで使っている運営ツールは何ですか？<span class="req">*</span></div>
+        <div class="radio-group" id="q16">
+          <label class="radio-option"><input type="radio" name="q16" value="LINEグループのみ"> LINEグループのみ</label>
+          <label class="radio-option"><input type="radio" name="q16" value="Googleドライブ・スプレッドシート"> Googleドライブ・スプレッドシート</label>
+          <label class="radio-option"><input type="radio" name="q16" value="Notion・Slackなど専用ツール"> Notion・Slackなど専用ツール</label>
+          <label class="radio-option"><input type="radio" name="q16" value="特に使っていない"> 特に使っていない</label>
+        </div>
+      </div>
+
+      <div class="q-block">
+        <div class="q-label"><span class="q-num">Q17</span>既存ツールへの不満はありますか？<span class="req">*</span></div>
+        <div class="radio-group" id="q17">
+          <label class="radio-option"><input type="radio" name="q17" value="操作が難しい・慣れるまで大変"> 操作が難しい・慣れるまで大変</label>
+          <label class="radio-option"><input type="radio" name="q17" value="メンバー全員に使ってもらえない"> メンバー全員に使ってもらえない</label>
+          <label class="radio-option"><input type="radio" name="q17" value="機能が多すぎて使いこなせない"> 機能が多すぎて使いこなせない</label>
+          <label class="radio-option"><input type="radio" name="q17" value="特に不満はない"> 特に不満はない</label>
+        </div>
+      </div>
+
+      <div class="q-block">
+        <div class="q-label"><span class="q-num">Q18</span>新しいサークル運営ツールに最も重視する機能は？<span class="req">*</span></div>
+        <div class="radio-group" id="q18">
+          <label class="radio-option"><input type="radio" name="q18" value="会員名簿・出席管理"> 会員名簿・出席管理</label>
+          <label class="radio-option"><input type="radio" name="q18" value="財務・会計管理"> 財務・会計管理</label>
+          <label class="radio-option"><input type="radio" name="q18" value="スケジュール・イベント管理"> スケジュール・イベント管理</label>
+          <label class="radio-option"><input type="radio" name="q18" value="連絡・意見収集"> 連絡・意見収集</label>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ STEP 4: 自由記述 ══ -->
+    <div class="section" data-step="4">
+      <div class="section-label">STEP 4　自由記述（ぜひ聞かせてください）</div>
+
+      <div class="q-block">
+        <div class="q-label"><span class="q-num">Q19</span>サークル運営で「これが一番しんどかった」という体験を具体的に教えてください</div>
+        <textarea id="q19" placeholder="例：年度末の引き継ぎ作業で、前任者のメモが断片的すぎて解読に1週間かかった…など"></textarea>
+      </div>
+
+      <div class="q-block">
+        <div class="q-label"><span class="q-num">Q20</span>「こんなツール・機能があったら絶対使う」というアイデアを自由に書いてください</div>
+        <textarea id="q20" placeholder="例：会費の未払い者に自動でリマインドが飛ぶ機能がほしい…など"></textarea>
+      </div>
+
+      <div class="q-block">
+        <div class="q-label"><span class="q-num">Q21</span>その他、サークル運営についてなんでもコメントをどうぞ</div>
+        <textarea id="q21" placeholder="なんでもOKです！" style="min-height:80px;"></textarea>
+      </div>
+
+      <div class="q-block">
+        <div class="q-label"><span class="q-num">任意</span>連絡先（メールまたはSNS）— 詳しく話を聞かせてもらえる方はぜひ</div>
+        <input type="text" id="q-contact" placeholder="例：sample@example.com　または　@twitter_id">
+      </div>
+    </div>
+
+    <!-- ══ 完了 ══ -->
+    <div class="success-section" id="success-section">
+      <div class="success-icon">🎉</div>
+      <h2>ご回答ありがとうございました！</h2>
+      <p>いただいた声をしっかり運営ツールの開発に活かします。<br>
+        もし詳しいお話を聞かせていただけるなら、<br>
+        ぜひ連絡先をご記入いただいていたら嬉しいです。</p>
+      <p class="credit">このアンケートは A-boost（駒澤大学）が運営しています</p>
+    </div>
+
+    <!-- ── ナビゲーションボタン ── -->
+    <div class="nav-buttons" id="nav-buttons">
+      <button class="btn-back" id="btn-back" style="display:none" onclick="prevStep()">← 戻る</button>
+      <button class="btn-next" id="btn-next" onclick="nextStep()">次へ →</button>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCJqp4e8BMkEbOO3ErWXJiz0zx9J3pxl34",
+      authDomain: "a-boost.firebaseapp.com",
+      projectId: "a-boost",
+      storageBucket: "a-boost.firebasestorage.app",
+      messagingSenderId: "431608615443",
+      appId: "1:431608615443:web:5fb112e76f2d6ef3b7e5e6"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    const TOTAL_STEPS = 4;
+    let currentStep = 1;
+
+    // ── ラジオ選択のビジュアル更新 ──
+    document.querySelectorAll('.radio-option input[type="radio"]').forEach(radio => {
+      radio.addEventListener('change', () => {
+        const group = radio.closest('.radio-group');
+        group.querySelectorAll('.radio-option').forEach(opt => opt.classList.remove('selected'));
+        radio.closest('.radio-option').classList.add('selected');
+      });
+    });
+
+    function getVal(name) {
+      const el = document.querySelector(`input[name="${name}"]:checked`);
+      return el ? el.value : null;
+    }
+
+    // ── バリデーション（各ステップ必須チェック） ──
+    const stepRequired = {
+      1: ['q1','q2','q3','q4','q5'],
+      2: ['q6','q7','q8','q9','q10','q11','q12','q13'],
+      3: ['q14','q15','q16','q17','q18'],
+      4: []
+    };
+
+    function validateStep(step) {
+      const required = stepRequired[step];
+      for (const name of required) {
+        if (!getVal(name)) {
+          const group = document.getElementById(name);
+          group.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          group.style.outline = '2px solid #ef4444';
+          group.style.borderRadius = '10px';
+          setTimeout(() => { group.style.outline = ''; }, 2000);
+          return false;
+        }
+      }
+      return true;
+    }
+
+    function updateUI() {
+      // セクション切り替え
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+      document.querySelector(`.section[data-step="${currentStep}"]`).classList.add('active');
+
+      // プログレスバー
+      document.getElementById('progress-bar').style.width = `${(currentStep / TOTAL_STEPS) * 100}%`;
+
+      // ステップ表示
+      document.getElementById('step-indicator').textContent = `STEP ${currentStep} / ${TOTAL_STEPS}`;
+
+      // 戻るボタン
+      document.getElementById('btn-back').style.display = currentStep > 1 ? '' : 'none';
+
+      // 次へボタンのラベル
+      const btnNext = document.getElementById('btn-next');
+      btnNext.textContent = currentStep === TOTAL_STEPS ? '送信する ✓' : '次へ →';
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function nextStep() {
+      if (!validateStep(currentStep)) return;
+
+      if (currentStep === TOTAL_STEPS) {
+        submitSurvey();
+        return;
+      }
+      currentStep++;
+      updateUI();
+    }
+
+    function prevStep() {
+      if (currentStep > 1) {
+        currentStep--;
+        updateUI();
+      }
+    }
+
+    function submitSurvey() {
+      const btnNext = document.getElementById('btn-next');
+      btnNext.disabled = true;
+      btnNext.textContent = '送信中…';
+
+      const response = {
+        createdAt: new Date().toISOString(),
+        q1:  getVal('q1'),
+        q2:  getVal('q2'),
+        q3:  getVal('q3'),
+        q4:  getVal('q4'),
+        q5:  getVal('q5'),
+        q6:  getVal('q6'),
+        q7:  getVal('q7'),
+        q8:  getVal('q8'),
+        q9:  getVal('q9'),
+        q10: getVal('q10'),
+        q11: getVal('q11'),
+        q12: getVal('q12'),
+        q13: getVal('q13'),
+        q14: getVal('q14'),
+        q15: getVal('q15'),
+        q16: getVal('q16'),
+        q17: getVal('q17'),
+        q18: getVal('q18'),
+        q19: document.getElementById('q19').value.trim(),
+        q20: document.getElementById('q20').value.trim(),
+        q21: document.getElementById('q21').value.trim(),
+        contact: document.getElementById('q-contact').value.trim(),
+      };
+
+      const dataRef = db.collection('app').doc('data');
+      dataRef.get().then(snap => {
+        const surveys = snap.exists ? (snap.data().surveys || []) : [];
+        surveys.push(response);
+        return dataRef.set({ surveys }, { merge: true });
+      }).then(() => {
+          document.querySelectorAll('.section').forEach(s => s.style.display = 'none');
+          document.getElementById('nav-buttons').style.display = 'none';
+          document.getElementById('step-indicator').style.display = 'none';
+          document.getElementById('progress-bar').style.width = '100%';
+          document.getElementById('success-section').style.display = 'block';
+        })
+        .catch(() => {
+          btnNext.disabled = false;
+          btnNext.textContent = '送信する ✓';
+          alert('送信に失敗しました。通信状況を確認してもう一度お試しください。');
+        });
+    }
+
+    updateUI();
+  </script>
+</body>
+</html>

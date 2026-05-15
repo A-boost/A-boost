@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>アンケート回答一覧</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', 'Hiragino Sans', 'Meiryo', sans-serif;
+      background: #f3f4f6;
+      padding: 1.5rem;
+    }
+    .header {
+      background: linear-gradient(135deg, #4f46e5, #7c3aed);
+      color: white;
+      padding: 1.25rem 1.5rem;
+      border-radius: 12px;
+      margin-bottom: 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+    .header h1 { font-size: 1.2rem; font-weight: 700; }
+    .header p  { font-size: 0.82rem; opacity: 0.85; margin-top: 0.2rem; }
+    .btn {
+      padding: 0.55rem 1.1rem;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .btn:hover { opacity: 0.85; }
+    .btn-white  { background: white; color: #4f46e5; }
+    .btn-gray   { background: #e5e7eb; color: #374151; }
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+    .count { font-size: 0.9rem; color: #6b7280; }
+
+    /* ── カード一覧 ── */
+    .card {
+      background: white;
+      border-radius: 10px;
+      border: 1px solid #e5e7eb;
+      margin-bottom: 0.75rem;
+      overflow: hidden;
+    }
+    .card-head {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.65rem 1rem;
+      background: #f9fafb;
+      cursor: pointer;
+      flex-wrap: wrap;
+    }
+    .card-head:hover { background: #f3f4f6; }
+    .tag {
+      font-size: 0.72rem;
+      padding: 0.15rem 0.5rem;
+      border-radius: 4px;
+      background: #eef2ff;
+      color: #4f46e5;
+      white-space: nowrap;
+    }
+    .date { font-size: 0.78rem; color: #9ca3af; white-space: nowrap; }
+    .card-body {
+      display: none;
+      padding: 0.75rem 1rem;
+    }
+    .card-body table { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
+    .card-body td { padding: 0.35rem 0.5rem; border-bottom: 1px solid #f3f4f6; vertical-align: top; }
+    .card-body td:first-child { color: #9ca3af; white-space: nowrap; width: 160px; }
+    .card-body td:last-child { white-space: pre-wrap; color: #1f2937; }
+
+    .empty { text-align: center; color: #9ca3af; padding: 3rem; }
+
+    @media (max-width: 480px) {
+      body { padding: 1rem 0.75rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div>
+      <h1>アンケート回答一覧</h1>
+      <p>サークル運営の困りごと調査 2026</p>
+    </div>
+    <div style="display:flex;gap:0.5rem;flex-wrap:wrap">
+      <button class="btn btn-white" onclick="exportCSV()">CSVダウンロード</button>
+      <button class="btn btn-gray"  onclick="loadData()" style="background:rgba(255,255,255,0.2);color:white">更新</button>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <span class="count" id="count">読み込み中…</span>
+  </div>
+
+  <div id="list"></div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  <script>
+    firebase.initializeApp({
+      apiKey: "AIzaSyCJqp4e8BMkEbOO3ErWXJiz0zx9J3pxl34",
+      authDomain: "a-boost.firebaseapp.com",
+      projectId: "a-boost",
+      storageBucket: "a-boost.firebasestorage.app",
+      messagingSenderId: "431608615443",
+      appId: "1:431608615443:web:5fb112e76f2d6ef3b7e5e6"
+    });
+    const db = firebase.firestore();
+
+    const LABELS = [
+      ['q1','学校種別'], ['q2','サークル種類'], ['q3','規模'], ['q4','役職'], ['q5','経験年数'],
+      ['q6','会員管理満足度'], ['q7','会員管理の困りごと'], ['q8','スケジュール管理方法'],
+      ['q9','スケジュール管理の困りごと'], ['q10','会計管理方法'], ['q11','会計管理の困りごと'],
+      ['q12','引き継ぎ状況'], ['q13','週の運営時間'], ['q14','一番しんどい場面'],
+      ['q15','ツールで解決したい課題'], ['q16','現在使っているツール'],
+      ['q17','既存ツールへの不満'], ['q18','新ツールに重視する機能'],
+      ['q19','体験談（自由記述）'], ['q20','欲しい機能アイデア'], ['q21','その他コメント'],
+      ['contact','連絡先'],
+    ];
+
+    let surveys = [];
+
+    function loadData() {
+      document.getElementById('count').textContent = '読み込み中…';
+      db.collection('app').doc('data').get().then(snap => {
+        surveys = snap.exists ? (snap.data().surveys || []) : [];
+        surveys.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        render();
+      }).catch(() => {
+        document.getElementById('count').textContent = '読み込みに失敗しました';
+      });
+    }
+
+    function render() {
+      document.getElementById('count').textContent = `${surveys.length} 件の回答`;
+      const el = document.getElementById('list');
+      if (surveys.length === 0) {
+        el.innerHTML = '<div class="empty">まだ回答がありません</div>';
+        return;
+      }
+      el.innerHTML = surveys.map((r, i) => {
+        const ts = r.createdAt
+          ? new Date(r.createdAt).toLocaleString('ja-JP', { month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit' })
+          : '';
+        const rows = LABELS.filter(([k]) => r[k]).map(([k, label]) =>
+          `<tr><td>${label}</td><td>${esc(r[k])}</td></tr>`
+        ).join('');
+        return `
+        <div class="card">
+          <div class="card-head" onclick="toggle(${i})">
+            <span class="date">${ts}</span>
+            ${r.q1 ? `<span class="tag">${esc(r.q1)}</span>` : ''}
+            ${r.q3 ? `<span class="tag">${esc(r.q3)}</span>` : ''}
+            ${r.q4 ? `<span class="tag">${esc(r.q4)}</span>` : ''}
+            <span style="flex:1;font-size:0.82rem;color:#6b7280">${esc(r.q2 || '')}</span>
+            <span style="font-size:0.75rem;color:#4f46e5">▼</span>
+          </div>
+          <div class="card-body" id="cb-${i}">
+            <table>${rows}</table>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    function toggle(i) {
+      const el = document.getElementById(`cb-${i}`);
+      el.style.display = el.style.display === 'block' ? 'none' : 'block';
+    }
+
+    function exportCSV() {
+      if (surveys.length === 0) { alert('回答データがありません'); return; }
+      const headers = ['回答日時', ...LABELS.map(([, l]) => l)];
+      const rows = surveys.map(r => [
+        r.createdAt ? new Date(r.createdAt).toLocaleString('ja-JP') : '',
+        ...LABELS.map(([k]) => r[k] || ''),
+      ]);
+      const bom = '﻿';
+      const csv = [headers, ...rows].map(row =>
+        row.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')
+      ).join('\r\n');
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([bom + csv], { type: 'text/csv;charset=utf-8' }));
+      a.download = `survey_${new Date().toISOString().slice(0,10)}.csv`;
+      a.click();
+    }
+
+    function esc(s) {
+      return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    loadData();
+  </script>
+</body>
+</html>
