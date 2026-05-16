@@ -78,9 +78,10 @@
       display: none;
       padding: 0.75rem 1rem;
     }
-    .card-body table { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
-    .card-body td { padding: 0.35rem 0.5rem; border-bottom: 1px solid #f3f4f6; vertical-align: top; }
-    .card-body td:first-child { color: #9ca3af; white-space: nowrap; width: 160px; }
+    .card-body table { width: 100%; border-collapse: collapse; font-size: 0.83rem; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden; }
+    .card-body td { padding: 0.5rem 0.75rem; border-bottom: 1px solid #e5e7eb; vertical-align: top; }
+    .card-body tr:last-child td { border-bottom: none; }
+    .card-body td:first-child { color: #6b7280; white-space: nowrap; width: 160px; background: #f9fafb; font-weight: 600; border-right: 1px solid #e5e7eb; }
     .card-body td:last-child { white-space: pre-wrap; color: #1f2937; }
 
     .empty { text-align: center; color: #9ca3af; padding: 3rem; }
