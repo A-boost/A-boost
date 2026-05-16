@@ -290,6 +290,16 @@
       <div class="section-label">STEP 1　あなたのサークルについて</div>
 
       <div class="q-block">
+        <div class="q-label">お名前<span class="req">*</span></div>
+        <input type="text" id="f-name" placeholder="例：山田 太郎">
+      </div>
+
+      <div class="q-block">
+        <div class="q-label">サークル名<span class="req">*</span></div>
+        <input type="text" id="f-circle" placeholder="例：〇〇大学 △△サークル">
+      </div>
+
+      <div class="q-block">
         <div class="q-label"><span class="q-num">Q1</span>大学・学校の種類を教えてください<span class="req">*</span></div>
         <div class="radio-group" id="q1">
           <label class="radio-option"><input type="radio" name="q1" value="国公立大学"> 国公立大学</label>
@@ -549,7 +559,7 @@
 
     // ── バリデーション（各ステップ必須チェック） ──
     const stepRequired = {
-      1: ['q1','q2','q3','q4','q5'],
+      1: ['q1','q2','q3','q4','q5','f-name','f-circle'],
       2: ['q_member','q6','q7','q8','q9','q10','q11'],
       3: ['q14','q15','q16','q17','q18'],
       4: []
@@ -558,12 +568,13 @@
     function validateStep(step) {
       const required = stepRequired[step];
       for (const name of required) {
-        if (!getVal(name)) {
-          const group = document.getElementById(name);
-          group.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          group.style.outline = '2px solid #ef4444';
-          group.style.borderRadius = '10px';
-          setTimeout(() => { group.style.outline = ''; }, 2000);
+        const el = document.getElementById(name);
+        const val = el && el.tagName !== 'DIV' ? el.value.trim() : getVal(name);
+        if (!val) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          el.style.outline = '2px solid #ef4444';
+          el.style.borderRadius = '10px';
+          setTimeout(() => { el.style.outline = ''; }, 2000);
           return false;
         }
       }
@@ -616,6 +627,8 @@
 
       const response = {
         createdAt: new Date().toISOString(),
+        name:   document.getElementById('f-name').value.trim(),
+        circle: document.getElementById('f-circle').value.trim(),
         q1:  getVal('q1'),
         q2:  getVal('q2'),
         q3:  getVal('q3'),
