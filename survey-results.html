@@ -173,6 +173,7 @@
             ${r.q3 ? `<span class="tag">${esc(r.q3)}</span>` : ''}
             ${r.q4 ? `<span class="tag">${esc(r.q4)}</span>` : ''}
             <span style="flex:1;font-size:0.82rem;color:#6b7280">${esc(r.q2 || '')}</span>
+            <button onclick="event.stopPropagation();deleteEntry(${i})" style="background:#fee2e2;color:#dc2626;border:none;border-radius:6px;padding:0.2rem 0.6rem;font-size:0.75rem;cursor:pointer;">削除</button>
             <span style="font-size:0.75rem;color:#4f46e5">▼</span>
           </div>
           <div class="card-body" id="cb-${i}">
@@ -185,6 +186,16 @@
     function toggle(i) {
       const el = document.getElementById(`cb-${i}`);
       el.style.display = el.style.display === 'block' ? 'none' : 'block';
+    }
+
+    function deleteEntry(i) {
+      if (!confirm('この回答を削除しますか？')) return;
+      surveys.splice(i, 1);
+      db.collection('app').doc('data').set({ surveys }, { merge: true }).then(() => {
+        render();
+      }).catch(() => {
+        alert('削除に失敗しました');
+      });
     }
 
     function exportCSV() {
