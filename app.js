@@ -312,6 +312,56 @@ function editMember(id) {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
+function bulkImport2026() {
+  const newMembers = [
+    { name: "吉田絢音", grade: "1年" },
+    { name: "外山直紀", grade: "1年" },
+    { name: "日下愛梨", grade: "1年" },
+    { name: "守重 澪", grade: "1年" },
+    { name: "宇佐美由依", grade: "1年" },
+    { name: "朝日総司", grade: "1年" },
+    { name: "加藤奏汰", grade: "1年" },
+    { name: "今井洸羽", grade: "1年" },
+    { name: "三津井 昂大", grade: "1年" },
+    { name: "山田想来", grade: "1年" },
+    { name: "大平朔太郎", grade: "1年" },
+    { name: "吉野聖人", grade: "1年" },
+    { name: "佐川愛子", grade: "1年" },
+    { name: "大野栞奈", grade: "1年" },
+    { name: "北村陽太", grade: "1年" },
+    { name: "野澤風音", grade: "1年" },
+    { name: "外川 慶次郎", grade: "1年" },
+    { name: "川﨑 梨音", grade: "1年" },
+    { name: "戸田暁道", grade: "1年" },
+    { name: "石倉平蔵", grade: "1年" },
+    { name: "兼丸 怜穏", grade: "1年" },
+    { name: "野田晃希", grade: "1年" },
+    { name: "森山翔世", grade: "1年" },
+    { name: "堤南菜恵", grade: "1年" },
+    { name: "川畑 楓", grade: "1年" },
+    { name: "伊藤禅", grade: "1年" },
+    { name: "小林啓悟", grade: "2年" },
+    { name: "石飛百々華", grade: "2年" },
+    { name: "西野沙也加", grade: "2年" },
+    { name: "河住 陽茉莉", grade: "2年" },
+    { name: "白尾灯子", grade: "2年" },
+    { name: "石榑桃大", grade: "2年" },
+    { name: "稲辺優人", grade: "2年" },
+    { name: "白坂香乃", grade: "2年" },
+    { name: "榊原唯衣", grade: "2年" },
+    { name: "小林侑矢", grade: "2年" },
+    { name: "篠塚宗之介", grade: "2年" },
+  ];
+  const existing = DB.get('members');
+  const existingNames = new Set(existing.map(m => m.name));
+  const toAdd = newMembers.filter(m => !existingNames.has(m.name)).map(m => ({ id: genId(), name: m.name, grade: m.grade, dept: '', email: '' }));
+  if (!toAdd.length) { showToast('全員すでに登録済みです'); return; }
+  if (!confirm(`${toAdd.length}名を追加しますか？`)) return;
+  DB.set('members', [...existing, ...toAdd]);
+  addHistory('メンバー', '一括追加', `2026入会者 ${toAdd.length}名`);
+  showToast(`✅ ${toAdd.length}名を追加しました`);
+}
+
 function deleteMember(id) {
   if (!confirm('このメンバーを削除しますか？')) return;
   const m = DB.get('members').find(m => m.id === id);
