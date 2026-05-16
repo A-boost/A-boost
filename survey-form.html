@@ -423,10 +423,6 @@
         </div>
       </div>
 
-      <div class="q-block">
-        <div class="q-label"><span class="q-num">Q13</span>週あたりの運営にかかる時間はどのくらいですか？</div>
-        <textarea id="q13" placeholder="例：週3時間くらいです…など"></textarea>
-      </div>
     </div>
 
     <!-- ══ STEP 3: ツール・ニーズ ══ -->
@@ -434,7 +430,7 @@
       <div class="section-label">STEP 3　ツール・改善ニーズ</div>
 
       <div class="q-block">
-        <div class="q-label"><span class="q-num">Q14</span>サークルの管理や情報共有でどのくらい時間を使っていますか？<span class="req">*</span></div>
+        <div class="q-label"><span class="q-num">Q13</span>サークルの管理運営でどのくらいの時間を使っていますか？<span class="req">*</span></div>
         <div class="radio-group" id="q14">
           <label class="radio-option"><input type="radio" name="q14" value="週5時間以上"> 週5時間以上</label>
           <label class="radio-option"><input type="radio" name="q14" value="週2〜5時間程度"> 週2〜5時間程度</label>
@@ -444,7 +440,7 @@
       </div>
 
       <div class="q-block">
-        <div class="q-label"><span class="q-num">Q15</span>ツールがあれば解決できると思う課題は何ですか？<span class="req">*</span></div>
+        <div class="q-label"><span class="q-num">Q14</span>ツールがあれば解決できると思う課題は何ですか？<span class="req">*</span></div>
         <div class="radio-group" id="q15">
           <label class="radio-option"><input type="radio" name="q15" value="会員名簿・情報の一元管理"> 会員名簿・情報の一元管理</label>
           <label class="radio-option"><input type="radio" name="q15" value="会計・費用の管理"> 会計・費用の管理</label>
@@ -454,7 +450,7 @@
       </div>
 
       <div class="q-block">
-        <div class="q-label"><span class="q-num">Q16</span>現在メインで使っている運営ツールは何ですか？<span class="req">*</span></div>
+        <div class="q-label"><span class="q-num">Q15</span>現在メインで使っている運営ツールは何ですか？<span class="req">*</span></div>
         <div class="radio-group" id="q16">
           <label class="radio-option"><input type="radio" name="q16" value="LINEグループのみ"> LINEグループのみ</label>
           <label class="radio-option"><input type="radio" name="q16" value="Googleドライブ・スプレッドシート"> Googleドライブ・スプレッドシート</label>
@@ -464,7 +460,7 @@
       </div>
 
       <div class="q-block">
-        <div class="q-label"><span class="q-num">Q17</span>既存ツールへの不満はありますか？<span class="req">*</span></div>
+        <div class="q-label"><span class="q-num">Q16</span>既存ツールへの不満はありますか？<span class="req">*</span></div>
         <div class="radio-group" id="q17">
           <label class="radio-option"><input type="radio" name="q17" value="操作が難しい・慣れるまで大変"> 操作が難しい・慣れるまで大変</label>
           <label class="radio-option"><input type="radio" name="q17" value="メンバー全員に使ってもらえない"> メンバー全員に使ってもらえない</label>
@@ -474,7 +470,7 @@
       </div>
 
       <div class="q-block">
-        <div class="q-label"><span class="q-num">Q18</span>新しいサークル運営ツールに最も重視する機能は？<span class="req">*</span></div>
+        <div class="q-label"><span class="q-num">Q17</span>新しいサークル運営ツールに最も重視する機能は？<span class="req">*</span></div>
         <div class="radio-group" id="q18">
           <label class="radio-option"><input type="radio" name="q18" value="会員名簿・出席管理"> 会員名簿・出席管理</label>
           <label class="radio-option"><input type="radio" name="q18" value="財務・会計管理"> 財務・会計管理</label>
@@ -489,17 +485,17 @@
       <div class="section-label">STEP 4　自由記述（ぜひ聞かせてください）</div>
 
       <div class="q-block">
-        <div class="q-label"><span class="q-num">Q19</span>サークル運営で「これが一番しんどかった」という体験を具体的に教えてください</div>
+        <div class="q-label"><span class="q-num">Q18</span>サークル運営で「これが一番しんどかった」という体験を具体的に教えてください</div>
         <textarea id="q19" placeholder="例：年度末の引き継ぎ作業で、前任者のメモが断片的すぎて解読に1週間かかった…など"></textarea>
       </div>
 
       <div class="q-block">
-        <div class="q-label"><span class="q-num">Q20</span>「こんなツール・機能があったら絶対使う」というアイデアを自由に書いてください</div>
+        <div class="q-label"><span class="q-num">Q19</span>「こんなツール・機能があったら絶対使う」というアイデアを自由に書いてください</div>
         <textarea id="q20" placeholder="例：会費の未払い者に自動でリマインドが飛ぶ機能がほしい…など"></textarea>
       </div>
 
       <div class="q-block">
-        <div class="q-label"><span class="q-num">Q21</span>その他、サークル運営についてなんでもコメントをどうぞ</div>
+        <div class="q-label"><span class="q-num">Q20</span>その他、サークル運営についてなんでもコメントをどうぞ</div>
         <textarea id="q21" placeholder="なんでもOKです！" style="min-height:80px;"></textarea>
       </div>
 
@@ -561,7 +557,8 @@
     const stepRequired = {
       1: ['q1','q2','q3','q4','q5','f-name','f-circle'],
       2: ['q_member','q6','q7','q8','q9','q10','q11'],
-      3: ['q14','q15','q16','q17','q18'],
+      // q13はSTEP3へ移動
+      3: ['q13','q14','q15','q16','q17','q18'],
       4: []
     };
 
@@ -641,7 +638,7 @@
         q9:  getVal('q9'),
         q10: getVal('q10'),
         q11: getVal('q11'),
-        q13: document.getElementById('q13').value.trim(),
+        q13: getVal('q13'),
         q14: getVal('q14'),
         q15: getVal('q15'),
         q16: getVal('q16'),
