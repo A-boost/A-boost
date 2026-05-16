@@ -193,6 +193,78 @@ function updateDashboard() {
   }
 
   document.getElementById('notice-board').value = DB.getStr('notice');
+
+  // アンケート回答テーブル
+  renderSurveyTable();
+}
+
+const SURVEY_LABELS = [
+  ['createdAt','回答日時'], ['name','お名前'], ['circle','サークル名'],
+  ['q1','Q1学校種別'], ['q2','Q2サークル種類'], ['q3','Q3規模'], ['q4','Q4役職'], ['q5','Q5経験年数'],
+  ['q_member','Q6会員管理方法'], ['q6','Q7会員管理満足度'], ['q7','Q8会員管理の困りごと'],
+  ['q8','Q9スケジュール管理方法'], ['q9','Q10スケジュール管理の困りごと'],
+  ['q10','Q11会計管理方法'], ['q11','Q12会計管理の困りごと'],
+  ['q14','Q13管理運営の時間'], ['q15','Q14ツールで解決したい課題'],
+  ['q16','Q15現在使っているツール'], ['q17','Q16既存ツールへの不満'],
+  ['q18','Q17重視する機能'], ['q19','Q18体験談'], ['q20','Q19アイデア'], ['q21','Q20コメント'],
+  ['contact','連絡先'],
+];
+
+function renderSurveyTable() {
+  dataRef.get().then(snap => {
+    const surveys = snap.exists ? (snap.data().surveys || []) : [];
+    surveys.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    document.getElementById('survey-count').textContent = `${surveys.length}件`;
+
+    const thead = document.getElementById('survey-thead');
+    const tbody = document.getElementById('survey-tbody');
+
+    if (surveys.length === 0) {
+      thead.innerHTML = '';
+      tbody.innerHTML = '<tr><td colspan="100" style="text-align:center;color:#9ca3af;padding:1.5rem">まだ回答がありません</td></tr>';
+      return;
+    }
+
+    thead.innerHTML = SURVEY_LABELS.map(([, label]) =>
+      `<th style="padding:0.4rem 0.6rem;text-align:left;border-bottom:2px solid #e5e7eb;white-space:nowrap;font-size:0.78rem;color:#374151">${label}</th>`
+    ).join('');
+
+    tbody.innerHTML = surveys.map((r, i) => {
+      const ts = r.createdAt
+        ? new Date(r.createdAt).toLocaleString('ja-JP', { month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit' })
+        : '';
+      const cells = SURVEY_LABELS.map(([k]) => {
+        const val = k === 'createdAt' ? ts : (r[k] || '');
+        return `<td style="padding:0.4rem 0.6rem;border-bottom:1px solid #f3f4f6;white-space:nowrap;max-width:200px;overflow:hidden;text-overflow:ellipsis" title="${esc(val)}">${esc(val)}</td>`;
+      }).join('');
+      const bg = i % 2 === 0 ? '' : 'background:#f9fafb';
+      return `<tr style="${bg}">${cells}</tr>`;
+    }).join('');
+  });
+}
+
+function exportSurveyCSV() {
+  dataRef.get().then(snap => {
+    const surveys = snap.exists ? (snap.data().surveys || []) : [];
+    if (surveys.length === 0) { alert('回答データがありません'); return; }
+    surveys.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    const headers = SURVEY_LABELS.map(([, l]) => l);
+    const rows = surveys.map(r => {
+      return SURVEY_LABELS.map(([k]) => {
+        if (k === 'createdAt') return r.createdAt ? new Date(r.createdAt).toLocaleString('ja-JP') : '';
+        return r[k] || '';
+      });
+    });
+    const bom = '﻿';
+    const csv = [headers, ...rows].map(row =>
+      row.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')
+    ).join('\r\n');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([bom + csv], { type: 'text/csv;charset=utf-8' }));
+    a.download = `survey_${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
+  });
 }
 
 function saveNotice() {
