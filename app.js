@@ -690,13 +690,21 @@ function renderOpinions() {
     '<option value="__regular__">普段の活動</option>' +
     events.map(e => `<option value="${e.id}">${formatDate(e.date)} ${esc(e.title)}</option>`).join('');
 
-  // 投稿フォームの名前選択肢をメンバー一覧で更新
+  // 投稿フォームの名前選択肢をメンバー一覧で更新（学部ごとにグループ化）
   const nameEl = document.getElementById('opinion-name');
   if (nameEl) {
     const currentName = nameEl.value;
     const members = DB.get('members').sort((a, b) => a.name.localeCompare(b.name, 'ja'));
+    const grouped = {};
+    members.forEach(m => {
+      const dept = m.dept || 'その他';
+      if (!grouped[dept]) grouped[dept] = [];
+      grouped[dept].push(m);
+    });
     nameEl.innerHTML = '<option value="">メンバーを選択...</option>' +
-      members.map(m => `<option value="${esc(m.name)}">${esc(m.name)}</option>`).join('');
+      Object.keys(grouped).sort().map(dept =>
+        `<optgroup label="${esc(dept)}">${grouped[dept].map(m => `<option value="${esc(m.name)}">${esc(m.name)}</option>`).join('')}</optgroup>`
+      ).join('');
     nameEl.value = currentName;
   }
 
