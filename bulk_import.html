@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>メンバー一括インポート - A-boost</title>
+<style>
+  body { font-family: sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; }
+  h1 { color: #4f46e5; }
+  .info { background: #eef2ff; border-radius: 8px; padding: 15px; margin: 15px 0; }
+  button { padding: 12px 24px; font-size: 16px; cursor: pointer; background: #6366f1; color: white; border: none; border-radius: 8px; margin: 10px 0; }
+  button:hover { background: #4f46e5; }
+  button:disabled { background: #ccc; cursor: not-allowed; }
+  #log { white-space: pre-wrap; font-family: monospace; font-size: 13px; background: #f5f5f5; padding: 15px; border-radius: 8px; max-height: 500px; overflow-y: auto; margin-top: 15px; }
+  .success { color: #059669; }
+  .skip { color: #d97706; }
+  .error { color: #dc2626; }
+</style>
+</head>
+<body>
+<h1>2026入会者 一括インポート</h1>
+<div class="info">
+  <strong>スプレッドシート「2026入会者登録」から読み込んだデータ</strong><br>
+  1年生: 25名 / 2年生: 11名 = 合計 36名<br>
+  重複登録（山田想来）はスキップ済み。既存メンバーと名前が一致する場合も追加しません。
+</div>
+<button id="importBtn" onclick="importMembers()">インポート開始</button>
+<div id="log"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script>
+  window.onerror = (msg, src, line) => {
+    document.getElementById('log').innerHTML += `<span class="error">JSエラー: ${msg} (${line}行目)\n</span>`;
+  };
+</script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyCJqp4e8BMkEbOO3ErWXJiz0zx9J3pxl34",
+    authDomain: "a-boost.firebaseapp.com",
+    projectId: "a-boost",
+    storageBucket: "a-boost.firebasestorage.app",
+    messagingSenderId: "431608615443",
+    appId: "1:431608615443:web:5fb112e76f2d6ef3b7e5e6"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const fsdb = firebase.firestore();
+  const dataRef = fsdb.collection('app').doc('data');
+
+  function genId() {
+    return Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+  }
+
+  const NEW_MEMBERS = [
+    // ===== 1年生 =====
+    { name: "吉田絢音", grade: "1年" },
+    { name: "外山直紀", grade: "1年" },
+    { name: "日下愛梨", grade: "1年" },
+    { name: "守重 澪", grade: "1年" },
+    { name: "宇佐美由依", grade: "1年" },
+    { name: "朝日総司", grade: "1年" },
+    { name: "加藤奏汰", grade: "1年" },
+    { name: "今井洸羽", grade: "1年" },
+    { name: "三津井 昂大", grade: "1年" },
+    { name: "山田想来", grade: "1年" },
+    { name: "大平朔太郎", grade: "1年" },
+    { name: "吉野聖人", grade: "1年" },
+    { name: "佐川愛子", grade: "1年" },
+    { name: "大野栞奈", grade: "1年" },
+    { name: "北村陽太", grade: "1年" },
+    { name: "野澤風音", grade: "1年" },
+    { name: "外川 慶次郎", grade: "1年" },
+    { name: "川﨑 梨音", grade: "1年" },
+    { name: "戸田暁道", grade: "1年" },
+    { name: "石倉平蔵", grade: "1年" },
+    { name: "兼丸 怜穏", grade: "1年" },
+    { name: "野田晃希", grade: "1年" },
+    { name: "森山翔世", grade: "1年" },
+    { name: "堤南菜恵", grade: "1年" },
+    { name: "川畑 楓", grade: "1年" },
+    { name: "伊藤禅", grade: "1年" },
+    // ===== 2年生 =====
+    { name: "小林啓悟", grade: "2年" },
+    { name: "石飛百々華", grade: "2年" },
+    { name: "西野沙也加", grade: "2年" },
+    { name: "河住 陽茉莉", grade: "2年" },
+    { name: "白尾灯子", grade: "2年" },
+    { name: "石榑桃大", grade: "2年" },
+    { name: "稲辺優人", grade: "2年" },
+    { name: "白坂香乃", grade: "2年" },
+    { name: "榊原唯衣", grade: "2年" },
+    { name: "小林侑矢", grade: "2年" },
+    { name: "篠塚宗之介", grade: "2年" },
+  ];
+
+  function log(msg, cls) {
+    const el = document.getElementById('log');
+    const span = document.createElement('span');
+    if (cls) span.className = cls;
+    span.textContent = msg + '\n';
+    el.appendChild(span);
+    el.scrollTop = el.scrollHeight;
+  }
+
+  async function importMembers() {
+    const btn = document.getElementById('importBtn');
+    btn.disabled = true;
+    document.getElementById('log').innerHTML = '';
+
+    if (typeof firebase === 'undefined') {
+      log('エラー: Firebaseが読み込まれていません。インターネット接続を確認してください。', 'error');
+      btn.disabled = false;
+      return;
+    }
+
+    log('Firebaseからデータ取得中...');
+
+    try {
+      const snap = await dataRef.get();
+      const data = snap.exists ? snap.data() : {};
+      const existingMembers = data.members || [];
+
+      log(`既存メンバー数: ${existingMembers.length}名\n`);
+
+      const existingNames = new Set(existingMembers.map(m => m.name));
+      const toAdd = [];
+      let skipCount = 0;
+
+      for (const m of NEW_MEMBERS) {
+        if (existingNames.has(m.name)) {
+          log(`  スキップ（既存）: ${m.name}`, 'skip');
+          skipCount++;
+        } else {
+          toAdd.push({ id: genId(), name: m.name, grade: m.grade, dept: '', email: '' });
+        }
+      }
+
+      log(`\n追加対象: ${toAdd.length}名 / スキップ: ${skipCount}名`);
+
+      if (toAdd.length === 0) {
+        log('\n全員既に登録済みです。', 'skip');
+        btn.disabled = false;
+        return;
+      }
+
+      log('Firebaseに書き込み中...\n');
+      const updatedMembers = [...existingMembers, ...toAdd];
+      await dataRef.set({ members: updatedMembers }, { merge: true });
+
+      log(`✅ 完了！ ${toAdd.length}名のメンバーを追加しました\n`, 'success');
+      for (const m of toAdd) {
+        log(`  + ${m.name}（${m.grade}）`, 'success');
+      }
+
+    } catch (e) {
+      log('\nエラー: ' + e.message, 'error');
+    }
+
+    btn.disabled = false;
+  }
+</script>
+</body>
+</html>

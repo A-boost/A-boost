@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Meiryo', sans-serif; }
+  .page {
+    width: 210mm;
+    height: 297mm;
+    padding: 10mm 12mm;
+    display: flex;
+    flex-direction: column;
+  }
+  .upper {
+    height: 50%;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    align-content: start;
+  }
+  .group {
+    border: 1px solid #aaa;
+    border-radius: 4px;
+    padding: 4px 6px;
+  }
+  .group-title {
+    font-size: 9px;
+    font-weight: bold;
+    color: #444;
+    border-bottom: 1px solid #ddd;
+    margin-bottom: 3px;
+    padding-bottom: 2px;
+  }
+  .pair {
+    font-size: 9px;
+    line-height: 1.5;
+  }
+  .lower {
+    height: 50%;
+    border-top: 1px dashed #bbb;
+    margin-top: 4mm;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="upper">
+
+    <div class="group">
+      <div class="group-title">グループ1 ＝ 20</div>
+      <div class="pair">14 + 6</div>
+      <div class="pair">15 + 5</div>
+      <div class="pair">10 + 10</div>
+      <div class="pair">3 + 17</div>
+      <div class="pair">11 + 9</div>
+      <div class="pair">12 + 8</div>
+      <div class="pair">16 + 4</div>
+      <div class="pair">19 + 1</div>
+      <div class="pair">13 + 7</div>
+      <div class="pair">18 + 2</div>
+    </div>
+
+    <div class="group">
+      <div class="group-title">グループ2 ＝ 39</div>
+      <div class="pair">38 + 1</div>
+      <div class="pair">6 + 33</div>
+      <div class="pair">32 + 7</div>
+      <div class="pair">17 + 22</div>
+      <div class="pair">20 + 19</div>
+      <div class="pair">18 + 21</div>
+      <div class="pair">11 + 28</div>
+      <div class="pair">9 + 30</div>
+      <div class="pair">25 + 14</div>
+      <div class="pair">29 + 10</div>
+    </div>
+
+    <div class="group">
+      <div class="group-title">グループ3 ＝ 46</div>
+      <div class="pair">30 + 16</div>
+      <div class="pair">9 + 37</div>
+      <div class="pair">39 + 7</div>
+      <div class="pair">33 + 13</div>
+      <div class="pair">12 + 34</div>
+      <div class="pair">21 + 25</div>
+      <div class="pair">27 + 19</div>
+      <div class="pair">11 + 35</div>
+      <div class="pair">2 + 44</div>
+      <div class="pair">1 + 45</div>
+    </div>
+
+    <div class="group">
+      <div class="group-title">グループ4 ＝ 75</div>
+      <div class="pair">48 + 27</div>
+      <div class="pair">12 + 63</div>
+      <div class="pair">42 + 33</div>
+      <div class="pair">54 + 21</div>
+      <div class="pair">28 + 47</div>
+      <div class="pair">50 + 25</div>
+      <div class="pair">65 + 10</div>
+      <div class="pair">15 + 60</div>
+      <div class="pair">16 + 59</div>
+      <div class="pair">30 + 45</div>
+    </div>
+
+    <div class="group">
+      <div class="group-title">グループ5 ＝ 92</div>
+      <div class="pair">65 + 27</div>
+      <div class="pair">17 + 75</div>
+      <div class="pair">51 + 41</div>
+      <div class="pair">90 + 2</div>
+      <div class="pair">57 + 35</div>
+      <div class="pair">87 + 5</div>
+      <div class="pair">24 + 68</div>
+      <div class="pair">76 + 16</div>
+      <div class="pair">43 + 49</div>
+      <div class="pair">25 + 67</div>
+    </div>
+
+    <div class="group">
+      <div class="group-title">グループ6 ＝ 106</div>
+      <div class="pair">90 + 16</div>
+      <div class="pair">22 + 84</div>
+      <div class="pair">94 + 12</div>
+      <div class="pair">69 + 37</div>
+      <div class="pair">73 + 33</div>
+      <div class="pair">29 + 77</div>
+      <div class="pair">78 + 28</div>
+      <div class="pair">85 + 21</div>
+      <div class="pair">1 + 105</div>
+      <div class="pair">82 + 24</div>
+    </div>
+
+    <div class="group">
+      <div class="group-title">グループ7 ＝ 117</div>
+      <div class="pair">5 + 112</div>
+      <div class="pair">35 + 82</div>
+      <div class="pair">96 + 21</div>
+      <div class="pair">41 + 76</div>
+      <div class="pair">113 + 4</div>
+      <div class="pair">58 + 59</div>
+      <div class="pair">116 + 1</div>
+      <div class="pair">28 + 89</div>
+      <div class="pair">88 + 29</div>
+      <div class="pair">38 + 79</div>
+    </div>
+
+    <div class="group">
+      <div class="group-title">グループ8 ＝ 127</div>
+      <div class="pair">122 + 5</div>
+      <div class="pair">48 + 79</div>
+      <div class="pair">24 + 103</div>
+      <div class="pair">89 + 38</div>
+      <div class="pair">51 + 76</div>
+      <div class="pair">117 + 10</div>
+      <div class="pair">4 + 123</div>
+      <div class="pair">31 + 96</div>
+      <div class="pair">21 + 106</div>
+      <div class="pair">100 + 27</div>
+    </div>
+
+    <div class="group">
+      <div class="group-title">グループ9 ＝ 129</div>
+      <div class="pair">114 + 15</div>
+      <div class="pair">13 + 116</div>
+      <div class="pair">70 + 59</div>
+      <div class="pair">106 + 23</div>
+      <div class="pair">118 + 11</div>
+      <div class="pair">76 + 53</div>
+      <div class="pair">49 + 80</div>
+      <div class="pair">104 + 25</div>
+      <div class="pair">120 + 9</div>
+      <div class="pair">43 + 86</div>
+    </div>
+
+    <div class="group">
+      <div class="group-title">グループ10 ＝ 134</div>
+      <div class="pair">98 + 36</div>
+      <div class="pair">93 + 41</div>
+      <div class="pair">72 + 62</div>
+      <div class="pair">126 + 8</div>
+      <div class="pair">63 + 71</div>
+      <div class="pair">22 + 112</div>
+      <div class="pair">40 + 94</div>
+      <div class="pair">90 + 44</div>
+      <div class="pair">27 + 107</div>
+      <div class="pair">12 + 122</div>
+    </div>
+
+    <div class="group">
+      <div class="group-title">グループ11 ＝ 151</div>
+      <div class="pair">103 + 48</div>
+      <div class="pair">92 + 59</div>
+      <div class="pair">37 + 114</div>
+      <div class="pair">46 + 105</div>
+      <div class="pair">129 + 22</div>
+      <div class="pair">119 + 32</div>
+      <div class="pair">97 + 54</div>
+      <div class="pair">139 + 12</div>
+      <div class="pair">73 + 78</div>
+      <div class="pair">10 + 141</div>
+    </div>
+
+    <div class="group">
+      <div class="group-title">グループ12 ＝ 177</div>
+      <div class="pair">109 + 68</div>
+      <div class="pair">141 + 36</div>
+      <div class="pair">57 + 120</div>
+      <div class="pair">1 + 176</div>
+      <div class="pair">38 + 139</div>
+      <div class="pair">39 + 138</div>
+      <div class="pair">164 + 13</div>
+      <div class="pair">33 + 144</div>
+      <div class="pair">21 + 156</div>
+      <div class="pair">106 + 71</div>
+    </div>
+
+  </div>
+  <div class="lower"></div>
+</div>
+</body>
+</html>

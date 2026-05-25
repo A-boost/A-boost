@@ -92,6 +92,12 @@ function migrateHistory() {
   renderHistory();
 }
 
+function clearHistory() {
+  if (!confirm('履歴をすべて削除しますか？この操作は元に戻せません。')) return;
+  DB.set('history', []);
+  showToast('履歴を全削除しました');
+}
+
 function renderHistory() {
   const el = document.getElementById('history-list');
   if (!el) return;
