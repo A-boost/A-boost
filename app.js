@@ -458,7 +458,7 @@ function renderEvents() {
 }
 
 function typeLabel(t) {
-  return { practice: '活動', event: 'イベント', meeting: '打合せ', other: 'その他' }[t] || t;
+  return { practice: '活動', event: 'スポーツ大会', meeting: '打合せ', other: 'その他' }[t] || t;
 }
 
 function viewEvent(id) {
