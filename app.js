@@ -684,28 +684,7 @@ function deleteTodo(id) {
 
 // ========== 意見・アイデア ==========
 function renderOpinions() {
-  const filter = document.getElementById('opinion-event-filter')?.value || 'all';
-  const events = DB.get('events').sort((a, b) => new Date(a.date) - new Date(b.date));
-  const eventOptions = '<option value="">なし（全体への意見）</option>' +
-    '<option value="__regular__">普段の活動</option>' +
-    events.map(e => `<option value="${e.id}">${formatDate(e.date)} ${esc(e.title)}</option>`).join('');
-
-  // 投稿フォームのイベント選択肢を更新
-  const selectEl = document.getElementById('opinion-event-select');
-  if (selectEl) selectEl.innerHTML = eventOptions;
-
-  // フィルタードロップダウンを更新
-  const filterEl = document.getElementById('opinion-event-filter');
-  if (filterEl) {
-    const current = filterEl.value;
-    filterEl.innerHTML = '<option value="all">すべてのイベント</option>' +
-      '<option value="__regular__">普段の活動</option>' +
-      events.map(e => `<option value="${e.id}">${formatDate(e.date)} ${esc(e.title)}</option>`).join('');
-    filterEl.value = current;
-  }
-
-  let opinions = DB.get('opinions').sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-  if (filter !== 'all') opinions = opinions.filter(o => o.eventId === filter);
+  const opinions = DB.get('opinions').sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
   const el = document.getElementById('opinions-list');
   if (!el) return;
@@ -713,18 +692,16 @@ function renderOpinions() {
     el.innerHTML = '<p class="empty-msg">意見・アイデアはまだありません</p>';
     return;
   }
-  el.innerHTML = opinions.map(o => {
-    const ev = o.eventId === '__regular__' ? { title: '普段の活動' } : (o.eventId ? events.find(e => e.id === o.eventId) : null);
-    return `
+  el.innerHTML = opinions.map(o => `
     <div class="event-list-item" style="align-items:flex-start">
       <span class="event-date-badge">${o.createdAt ? o.createdAt.slice(5,10).replace('-','/') : ''}</span>
       <div style="flex:1">
-        <div class="event-list-title">${esc(o.name)}${ev ? ' <span style="color:var(--primary);font-size:0.8rem">— ' + esc(ev.title) + '</span>' : ''}</div>
+        <div class="event-list-title">${esc(o.name)}</div>
         <div style="margin-top:0.4rem;font-size:0.875rem;color:var(--gray-700);white-space:pre-wrap">${esc(o.text)}</div>
       </div>
       <button class="btn btn-danger btn-sm" onclick="deleteOpinion('${o.id}')">削除</button>
     </div>
-  `;}).join('');
+  `).join('');
 }
 
 function postOpinion() {
@@ -732,12 +709,10 @@ function postOpinion() {
   const text = document.getElementById('opinion-text').value.trim();
   if (!name) { alert('名前を入力してください'); return; }
   if (!text) { alert('意見・アイデアを入力してください'); return; }
-  const eventId = document.getElementById('opinion-event-select').value || null;
   const opinions = DB.get('opinions');
   opinions.push({
     id: genId(),
     name,
-    eventId,
     text,
     createdAt: new Date().toISOString().slice(0, 10),
   });
@@ -745,7 +720,6 @@ function postOpinion() {
   addHistory('意見', '追加', `${name}が投稿`);
   document.getElementById('opinion-name').value = '';
   document.getElementById('opinion-text').value = '';
-  document.getElementById('opinion-event-select').value = '';
   updateDashboard();
   showToast('投稿しました');
 }

@@ -125,13 +125,6 @@
       </div>
 
       <div class="form-group">
-        <label>対象イベント</label>
-        <select id="f-event">
-          <option value="">なし（全体への意見）</option>
-        </select>
-      </div>
-
-      <div class="form-group">
         <label>意見・アイデア<span class="required">*</span></label>
         <textarea id="f-text" rows="6" placeholder="自由に書いてください..."></textarea>
       </div>
@@ -170,19 +163,6 @@
       if (!snap.exists) return;
       const data = snap.data();
 
-      const events = (data.events || []).sort((a, b) => new Date(a.date) - new Date(b.date));
-      const sel = document.getElementById('f-event');
-      const regularOpt = document.createElement('option');
-      regularOpt.value = '__regular__';
-      regularOpt.textContent = '普段の活動';
-      sel.appendChild(regularOpt);
-      events.forEach(e => {
-        const opt = document.createElement('option');
-        opt.value = e.id;
-        const d = new Date(e.date + 'T00:00:00');
-        opt.textContent = `${d.getMonth()+1}/${d.getDate()} ${e.title}`;
-        sel.appendChild(opt);
-      });
     });
 
     function submitOpinion() {
@@ -194,7 +174,6 @@
       const opinion = {
         id: Date.now().toString(36) + Math.random().toString(36).slice(2, 5),
         name,
-        eventId: document.getElementById('f-event').value || null,
         text,
         createdAt: new Date().toISOString().slice(0, 10),
       };
