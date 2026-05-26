@@ -690,24 +690,6 @@ function renderOpinions() {
     '<option value="__regular__">普段の活動</option>' +
     events.map(e => `<option value="${e.id}">${formatDate(e.date)} ${esc(e.title)}</option>`).join('');
 
-  // 投稿フォームの名前選択肢をメンバー一覧で更新（学部ごとにグループ化）
-  const nameEl = document.getElementById('opinion-name');
-  if (nameEl) {
-    const currentName = nameEl.value;
-    const members = DB.get('members').sort((a, b) => a.name.localeCompare(b.name, 'ja'));
-    const grouped = {};
-    members.forEach(m => {
-      const dept = m.dept || 'その他';
-      if (!grouped[dept]) grouped[dept] = [];
-      grouped[dept].push(m);
-    });
-    nameEl.innerHTML = '<option value="">メンバーを選択...</option>' +
-      Object.keys(grouped).sort().map(dept =>
-        `<optgroup label="${esc(dept)}">${grouped[dept].map(m => `<option value="${esc(m.name)}">${esc(m.name)}</option>`).join('')}</optgroup>`
-      ).join('');
-    nameEl.value = currentName;
-  }
-
   // 投稿フォームのイベント選択肢を更新
   const selectEl = document.getElementById('opinion-event-select');
   if (selectEl) selectEl.innerHTML = eventOptions;
@@ -748,7 +730,7 @@ function renderOpinions() {
 function postOpinion() {
   const name = document.getElementById('opinion-name').value.trim();
   const text = document.getElementById('opinion-text').value.trim();
-  if (!name) { alert('名前を選択してください'); return; }
+  if (!name) { alert('名前を入力してください'); return; }
   if (!text) { alert('意見・アイデアを入力してください'); return; }
   const eventId = document.getElementById('opinion-event-select').value || null;
   const opinions = DB.get('opinions');
@@ -761,7 +743,7 @@ function postOpinion() {
   });
   DB.set('opinions', opinions);
   addHistory('意見', '追加', `${name}が投稿`);
-  document.getElementById('opinion-name').selectedIndex = 0;
+  document.getElementById('opinion-name').value = '';
   document.getElementById('opinion-text').value = '';
   document.getElementById('opinion-event-select').value = '';
   updateDashboard();

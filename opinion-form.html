@@ -121,9 +121,7 @@
 
       <div class="form-group">
         <label>名前<span class="required">*</span></label>
-        <select id="f-name">
-          <option value="">メンバーを選択...</option>
-        </select>
+        <input type="text" id="f-name" placeholder="名前を入力...">
       </div>
 
       <div class="form-group">
@@ -172,26 +170,6 @@
       if (!snap.exists) return;
       const data = snap.data();
 
-      const members = (data.members || []).sort((a, b) => a.name.localeCompare(b.name, 'ja'));
-      const nameSel = document.getElementById('f-name');
-      const grouped = {};
-      members.forEach(m => {
-        const dept = m.dept || 'その他';
-        if (!grouped[dept]) grouped[dept] = [];
-        grouped[dept].push(m);
-      });
-      Object.keys(grouped).sort().forEach(dept => {
-        const group = document.createElement('optgroup');
-        group.label = dept;
-        grouped[dept].forEach(m => {
-          const opt = document.createElement('option');
-          opt.value = m.name;
-          opt.textContent = m.name;
-          group.appendChild(opt);
-        });
-        nameSel.appendChild(group);
-      });
-
       const events = (data.events || []).sort((a, b) => new Date(a.date) - new Date(b.date));
       const sel = document.getElementById('f-event');
       const regularOpt = document.createElement('option');
@@ -210,7 +188,7 @@
     function submitOpinion() {
       const name = document.getElementById('f-name').value.trim();
       const text = document.getElementById('f-text').value.trim();
-      if (!name) { alert('名前を選択してください'); return; }
+      if (!name) { alert('名前を入力してください'); return; }
       if (!text) { alert('意見・アイデアを入力してください'); return; }
 
       const opinion = {
@@ -234,7 +212,7 @@
     }
 
     function resetForm() {
-      document.getElementById('f-name').selectedIndex = 0;
+      document.getElementById('f-name').value = '';
       document.getElementById('f-event').value = '';
       document.getElementById('f-text').value = '';
       document.getElementById('form-section').style.display = 'block';
