@@ -19,7 +19,6 @@
         <button class="nav-btn" data-page="schedule">スケジュール</button>
         <button class="nav-btn" data-page="accounting">会計</button>
         <button class="nav-btn" data-page="documents">意見・アイデア</button>
-        <button class="nav-btn" data-page="history">履歴</button>
       </nav>
     </header>
 
@@ -134,6 +133,7 @@
         <div class="toolbar">
           <input type="text" id="member-search" placeholder="名前・学年・学科で検索..." oninput="renderMembers()">
           <button class="btn btn-outline" onclick="exportCSV('members')">CSVエクスポート</button>
+          <button class="btn btn-primary" onclick="bulkImport2026()">2026入会者インポート</button>
         </div>
         <div class="table-container">
           <table id="members-table">
@@ -160,7 +160,7 @@
           <select id="event-filter" onchange="renderEvents()">
             <option value="all">すべて</option>
             <option value="practice">活動</option>
-            <option value="event">イベント</option>
+            <option value="event">スポーツ大会</option>
             <option value="meeting">打合せ</option>
             <option value="other">その他</option>
           </select>
@@ -230,15 +230,7 @@
           <div class="form-grid">
             <div class="form-group">
               <label>名前 *</label>
-              <select id="opinion-name">
-                <option value="">メンバーを選択...</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>対象イベント</label>
-              <select id="opinion-event-select">
-                <option value="">なし（全体への意見）</option>
-              </select>
+              <input type="text" id="opinion-name" placeholder="名前を入力...">
             </div>
             <div class="form-group full-width">
               <label>意見・アイデア *</label>
@@ -246,11 +238,6 @@
             </div>
           </div>
           <button class="btn btn-primary" onclick="postOpinion()">投稿する</button>
-        </div>
-        <div class="toolbar">
-          <select id="opinion-event-filter" onchange="renderOpinions()">
-            <option value="all">すべてのイベント</option>
-          </select>
         </div>
         <div id="opinions-list" class="list-container"></div>
       </section>
@@ -260,6 +247,7 @@
         <h2>操作履歴</h2>
         <div class="list-container" id="history-list"></div>
       </section>
+
     </main>
   </div>
 
@@ -322,7 +310,7 @@
           <label>種別</label>
           <select id="e-type">
             <option value="practice">活動</option>
-            <option value="event">イベント</option>
+            <option value="event">スポーツ大会</option>
             <option value="meeting">打合せ</option>
             <option value="other">その他</option>
           </select>

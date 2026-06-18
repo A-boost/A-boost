@@ -312,6 +312,56 @@ function editMember(id) {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
+function bulkImport2026() {
+  const newMembers = [
+    { name: "吉田絢音", grade: "1年" },
+    { name: "外山直紀", grade: "1年" },
+    { name: "日下愛梨", grade: "1年" },
+    { name: "守重 澪", grade: "1年" },
+    { name: "宇佐美由依", grade: "1年" },
+    { name: "朝日総司", grade: "1年" },
+    { name: "加藤奏汰", grade: "1年" },
+    { name: "今井洸羽", grade: "1年" },
+    { name: "三津井 昂大", grade: "1年" },
+    { name: "山田想来", grade: "1年" },
+    { name: "大平朔太郎", grade: "1年" },
+    { name: "吉野聖人", grade: "1年" },
+    { name: "佐川愛子", grade: "1年" },
+    { name: "大野栞奈", grade: "1年" },
+    { name: "北村陽太", grade: "1年" },
+    { name: "野澤風音", grade: "1年" },
+    { name: "外川 慶次郎", grade: "1年" },
+    { name: "川﨑 梨音", grade: "1年" },
+    { name: "戸田暁道", grade: "1年" },
+    { name: "石倉平蔵", grade: "1年" },
+    { name: "兼丸 怜穏", grade: "1年" },
+    { name: "野田晃希", grade: "1年" },
+    { name: "森山翔世", grade: "1年" },
+    { name: "堤南菜恵", grade: "1年" },
+    { name: "川畑 楓", grade: "1年" },
+    { name: "伊藤禅", grade: "1年" },
+    { name: "小林啓悟", grade: "2年" },
+    { name: "石飛百々華", grade: "2年" },
+    { name: "西野沙也加", grade: "2年" },
+    { name: "河住 陽茉莉", grade: "2年" },
+    { name: "白尾灯子", grade: "2年" },
+    { name: "石榑桃大", grade: "2年" },
+    { name: "稲辺優人", grade: "2年" },
+    { name: "白坂香乃", grade: "2年" },
+    { name: "榊原唯衣", grade: "2年" },
+    { name: "小林侑矢", grade: "2年" },
+    { name: "篠塚宗之介", grade: "2年" },
+  ];
+  const existing = DB.get('members');
+  const existingNames = new Set(existing.map(m => m.name));
+  const toAdd = newMembers.filter(m => !existingNames.has(m.name)).map(m => ({ id: genId(), name: m.name, grade: m.grade, dept: '', email: '' }));
+  if (!toAdd.length) { showToast('全員すでに登録済みです'); return; }
+  if (!confirm(`${toAdd.length}名を追加しますか？`)) return;
+  DB.set('members', [...existing, ...toAdd]);
+  addHistory('メンバー', '一括追加', `2026入会者 ${toAdd.length}名`);
+  showToast(`✅ ${toAdd.length}名を追加しました`);
+}
+
 function deleteMember(id) {
   if (!confirm('このメンバーを削除しますか？')) return;
   const m = DB.get('members').find(m => m.id === id);
@@ -408,7 +458,7 @@ function renderEvents() {
 }
 
 function typeLabel(t) {
-  return { practice: '活動', event: 'イベント', meeting: '打合せ', other: 'その他' }[t] || t;
+  return { practice: '活動', event: 'スポーツ大会', meeting: '打合せ', other: 'その他' }[t] || t;
 }
 
 function viewEvent(id) {
@@ -634,38 +684,7 @@ function deleteTodo(id) {
 
 // ========== 意見・アイデア ==========
 function renderOpinions() {
-  const filter = document.getElementById('opinion-event-filter')?.value || 'all';
-  const events = DB.get('events').sort((a, b) => new Date(a.date) - new Date(b.date));
-  const eventOptions = '<option value="">なし（全体への意見）</option>' +
-    '<option value="__regular__">普段の活動</option>' +
-    events.map(e => `<option value="${e.id}">${formatDate(e.date)} ${esc(e.title)}</option>`).join('');
-
-  // 投稿フォームの名前選択肢をメンバー一覧で更新
-  const nameEl = document.getElementById('opinion-name');
-  if (nameEl) {
-    const currentName = nameEl.value;
-    const members = DB.get('members').sort((a, b) => a.name.localeCompare(b.name, 'ja'));
-    nameEl.innerHTML = '<option value="">メンバーを選択...</option>' +
-      members.map(m => `<option value="${esc(m.name)}">${esc(m.name)}</option>`).join('');
-    nameEl.value = currentName;
-  }
-
-  // 投稿フォームのイベント選択肢を更新
-  const selectEl = document.getElementById('opinion-event-select');
-  if (selectEl) selectEl.innerHTML = eventOptions;
-
-  // フィルタードロップダウンを更新
-  const filterEl = document.getElementById('opinion-event-filter');
-  if (filterEl) {
-    const current = filterEl.value;
-    filterEl.innerHTML = '<option value="all">すべてのイベント</option>' +
-      '<option value="__regular__">普段の活動</option>' +
-      events.map(e => `<option value="${e.id}">${formatDate(e.date)} ${esc(e.title)}</option>`).join('');
-    filterEl.value = current;
-  }
-
-  let opinions = DB.get('opinions').sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-  if (filter !== 'all') opinions = opinions.filter(o => o.eventId === filter);
+  const opinions = DB.get('opinions').sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
   const el = document.getElementById('opinions-list');
   if (!el) return;
@@ -673,39 +692,34 @@ function renderOpinions() {
     el.innerHTML = '<p class="empty-msg">意見・アイデアはまだありません</p>';
     return;
   }
-  el.innerHTML = opinions.map(o => {
-    const ev = o.eventId === '__regular__' ? { title: '普段の活動' } : (o.eventId ? events.find(e => e.id === o.eventId) : null);
-    return `
+  el.innerHTML = opinions.map(o => `
     <div class="event-list-item" style="align-items:flex-start">
       <span class="event-date-badge">${o.createdAt ? o.createdAt.slice(5,10).replace('-','/') : ''}</span>
       <div style="flex:1">
-        <div class="event-list-title">${esc(o.name)}${ev ? ' <span style="color:var(--primary);font-size:0.8rem">— ' + esc(ev.title) + '</span>' : ''}</div>
+        <div class="event-list-title">${esc(o.name)}</div>
         <div style="margin-top:0.4rem;font-size:0.875rem;color:var(--gray-700);white-space:pre-wrap">${esc(o.text)}</div>
       </div>
       <button class="btn btn-danger btn-sm" onclick="deleteOpinion('${o.id}')">削除</button>
     </div>
-  `;}).join('');
+  `).join('');
 }
 
 function postOpinion() {
   const name = document.getElementById('opinion-name').value.trim();
   const text = document.getElementById('opinion-text').value.trim();
-  if (!name) { alert('名前を選択してください'); return; }
+  if (!name) { alert('名前を入力してください'); return; }
   if (!text) { alert('意見・アイデアを入力してください'); return; }
-  const eventId = document.getElementById('opinion-event-select').value || null;
   const opinions = DB.get('opinions');
   opinions.push({
     id: genId(),
     name,
-    eventId,
     text,
     createdAt: new Date().toISOString().slice(0, 10),
   });
   DB.set('opinions', opinions);
   addHistory('意見', '追加', `${name}が投稿`);
-  document.getElementById('opinion-name').selectedIndex = 0;
+  document.getElementById('opinion-name').value = '';
   document.getElementById('opinion-text').value = '';
-  document.getElementById('opinion-event-select').value = '';
   updateDashboard();
   showToast('投稿しました');
 }
