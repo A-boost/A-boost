@@ -9,7 +9,7 @@
 
     body {
       font-family: 'Segoe UI', 'Hiragino Sans', 'Meiryo', sans-serif;
-      background: #f3f4f6;
+      background: url('sports-bg.png') center center / cover no-repeat fixed;
       min-height: 100vh;
       display: flex;
       align-items: center;
@@ -33,11 +33,11 @@
 
     .badge {
       display: inline-block;
-      background: #ede9fe;
-      color: #4f46e5;
-      font-size: 0.75rem;
+      background: #dc2626;
+      color: #ffffff;
+      font-size: 1.1rem;
       font-weight: 700;
-      padding: 0.25rem 0.75rem;
+      padding: 0.4rem 1.2rem;
       border-radius: 999px;
       margin-bottom: 0.5rem;
       letter-spacing: 0.05em;
@@ -157,7 +157,6 @@
       <div class="logo">
         <img src="logo.PNG" alt="A-boost" style="max-width:160px;margin-bottom:0.6rem;display:block;margin-left:auto;margin-right:auto">
         <span class="badge">🏆 スポーツ大会</span>
-        <h1>A-boost</h1>
         <p>参加申し込みフォーム</p>
       </div>
 
@@ -165,7 +164,7 @@
 
       <div class="form-group">
         <label>学籍番号<span class="required">*</span></label>
-        <input type="text" id="f-student-id" placeholder="例：N250140" maxlength="20">
+        <input type="text" id="f-student-id" placeholder="例：MR1111" maxlength="20">
       </div>
 
       <div class="form-group">
@@ -190,7 +189,6 @@
           <option value="">選択してください</option>
           <option value="男性">男性</option>
           <option value="女性">女性</option>
-          <option value="回答しない">回答しない</option>
         </select>
       </div>
 
