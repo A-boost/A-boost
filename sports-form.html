@@ -210,7 +210,7 @@
 
   <script>
     // ★ ここにGASのWebアプリURLを貼る
-    const GAS_URL = 'https://script.google.com/macros/s/AKfycbyS5tbn6gSDMVcglVocnPulOfmb9r7L76SZ5-1ld255OJ6rrjehPhZ8JM7sk3OTCe98oQ/exec';
+    const GAS_URL = 'https://script.google.com/macros/s/AKfycbz5X2vVslGKnVUMxKvOnpz43xC6AAOP6l8j1ipheORMB6fIa2BByPI9v97cVQuHdlvAgA/exec';
 
     function submitForm() {
       const studentId = document.getElementById('f-student-id').value.trim();
@@ -238,21 +238,13 @@
         timestamp: new Date().toLocaleString('ja-JP')
       });
 
-      fetch(GAS_URL, {
-        method: 'POST',
-        body: params,
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+      fetch(GAS_URL + '?' + params.toString(), {
+        method: 'GET',
+        mode: 'no-cors'
       })
-      .then(res => res.json())
-      .then(data => {
-        if (data.status === 'ok') {
-          document.getElementById('form-section').style.display = 'none';
-          document.getElementById('success-section').style.display = 'block';
-        } else {
-          alert('送信に失敗しました: ' + (data.message || '不明なエラー'));
-          btn.disabled = false;
-          btn.textContent = '申し込む';
-        }
+      .then(() => {
+        document.getElementById('form-section').style.display = 'none';
+        document.getElementById('success-section').style.display = 'block';
       })
       .catch(() => {
         alert('通信エラーが発生しました。もう一度お試しください。');
